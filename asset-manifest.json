@@ -1,16 +1,15 @@
 {
   "files": {
-    "main.css": "/SkillForge/static/css/main.f855e6bc.css",
-    "main.js": "/SkillForge/static/js/main.ee028915.js",
+    "main.css": "/SkillForge/static/css/main.e6c13ad2.css",
+    "main.js": "/SkillForge/static/js/main.df98b742.js",
     "static/js/453.b8b78d09.chunk.js": "/SkillForge/static/js/453.b8b78d09.chunk.js",
-    "static/media/logo.svg": "/SkillForge/static/media/logo.6ce24c58023cc2f8fd88fe9d219db6c6.svg",
     "index.html": "/SkillForge/index.html",
-    "main.f855e6bc.css.map": "/SkillForge/static/css/main.f855e6bc.css.map",
-    "main.ee028915.js.map": "/SkillForge/static/js/main.ee028915.js.map",
+    "main.e6c13ad2.css.map": "/SkillForge/static/css/main.e6c13ad2.css.map",
+    "main.df98b742.js.map": "/SkillForge/static/js/main.df98b742.js.map",
     "453.b8b78d09.chunk.js.map": "/SkillForge/static/js/453.b8b78d09.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.f855e6bc.css",
-    "static/js/main.ee028915.js"
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.df98b742.js"
   ]
 }
