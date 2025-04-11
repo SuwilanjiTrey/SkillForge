@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+/*import React, { useEffect, useState } from "react";
 import { db } from "../AnA/firebase.js";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -31,4 +31,19 @@ const AdminDashboard = () => {
     );
 };
 
+export default AdminDashboard;*/
+
+import React from "react";
+
+const AdminDashboard = () => {
+  return (
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p>Welcome to the admin dashboard. You can manage courses here.</p>
+    </div>
+  );
+};
+
 export default AdminDashboard;
+
+
