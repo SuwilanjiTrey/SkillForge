@@ -1,4 +1,4 @@
-/*import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { db } from "../AnA/firebase.js";
 import { collection, getDocs } from "firebase/firestore";
 
@@ -31,8 +31,9 @@ const AdminDashboard = () => {
     );
 };
 
-export default AdminDashboard;*/
+export default AdminDashboard;
 
+/*
 import React from "react";
 
 const AdminDashboard = () => {
@@ -46,4 +47,4 @@ const AdminDashboard = () => {
 
 export default AdminDashboard;
 
-
+*/

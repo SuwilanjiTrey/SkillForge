@@ -3,15 +3,21 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from "./Home";
 import AdminDashboard from "./Admin/Admin";
 import AdminRoute from "./Admin/AdminRoute";
-
-// Add this to your browser console to test admin access
-localStorage.setItem("isAdmin", "true");
+import Login from "./AnA/Login";
+import Register from "./AnA/Register";
+import AuthRoute from "./AnA/AuthRoute";
 
 const App = () => {
   return (
     <BrowserRouter basename="/">
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={
+          <AuthRoute>
+            <HomePage />
+          </AuthRoute>
+        } />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/admin"
           element={
