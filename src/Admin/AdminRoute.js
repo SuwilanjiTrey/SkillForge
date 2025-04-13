@@ -1,46 +1,41 @@
+// src/Admin/AdminRoute.js
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../AnA/firebase.js";
-import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-
-const AdminRoute = ({ children }) => {
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                setIsAdmin(userDoc.exists() && userDoc.data().role === "admin");
-            } else {
-                setIsAdmin(false);
-            }
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    if (loading) return <p>Loading...</p>;
-    return isAdmin ? children : <p>Access Denied</p>;
-};
-
-export default AdminRoute; 
-
-
-/*import React from "react";
 import { Navigate } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
 
-// This is a simplified example. In a real app, you would check authentication state
 const AdminRoute = ({ children }) => {
-  // Replace this with your actual authentication logic
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const db = getFirestore();
+        const adminRef = collection(db, "admins");
+        const adminQuery = query(adminRef, where("email", "==", user.email));
+        const adminSnapshot = await getDocs(adminQuery);
+        
+        if (!adminSnapshot.empty) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+      setLoading(false);
+    });
+    
+    return () => unsubscribe();
+  }, []);
+  
+  if (loading) {
+    return <div className="loading">Checking permissions...</div>;
   }
   
-  return children;
+  return isAdmin ? children : <Navigate to="/login" replace />;
 };
 
-export default AdminRoute;*/
+export default AdminRoute;
