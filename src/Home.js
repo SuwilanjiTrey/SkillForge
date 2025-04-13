@@ -19,7 +19,19 @@ const HomePage = () => {
     return () => unsubscribe();
   }, []);
   
-  const handleLogout = async () => {
+  const handleLogin = async () => {
+    
+    try {
+      
+      navigate("/login");
+    } catch (error) {
+      console.error("Login error:", error);
+    }
+  };
+  
+  /**
+   * 
+   *   const handleLogout = async () => {
     const auth = getAuth();
     try {
       await signOut(auth);
@@ -29,8 +41,8 @@ const HomePage = () => {
       console.error("Logout error:", error);
     }
   };
-  
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
+   */
+
   
   if (loading) {
     return <div className="loading">Loading...</div>;
@@ -47,14 +59,12 @@ const HomePage = () => {
           <a href="#courses" className="nav-link">Courses</a>
           <a href="#resources" className="nav-link">Resources</a>
           <a href="#community" className="nav-link">Community</a>
-          {isAdmin && (
-            <button onClick={() => navigate("/admin")} className="admin-btn">
-              Admin Dashboard
-            </button>
-          )}
-          <button onClick={handleLogout} className="logout-btn">
+          
+           
+          
+          <button onClick={handleLogin} className="login-btn">
             <LogOut size={18} />
-            <span>Logout</span>
+            <span>Login / Signup</span>
           </button>
         </nav>
       </header>
