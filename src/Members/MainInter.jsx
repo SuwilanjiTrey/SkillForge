@@ -1,9 +1,24 @@
 // src/components/MemberDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getFirestore, collection, getDocs, query, where, orderBy, limit } from "firebase/firestore";
-import { Code, BookOpen, Calendar, Bell, User } from "lucide-react";
-import "../Styles/Member.css"; // You'll need to create this CSS file
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  doc, 
+  getDoc 
+} from "firebase/firestore";
+import { 
+  BookOpen, 
+  Calendar, 
+  Bell,
+  User
+} from "lucide-react";
+import "../Styles/Member.css";
 
 const MemberDashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -11,29 +26,58 @@ const MemberDashboard = () => {
   const [upcomingSession, setUpcomingSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
-  // Check if user has member role
+  // Get auth data from localStorage
   const userRole = localStorage.getItem("userRole");
   const userEmail = localStorage.getItem("userEmail");
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!userId) return;
+    const verifyMembership = async () => {
+      if (!userId || !userEmail) {
+        setError("User authentication information missing");
+        setLoading(false);
+        return;
+      }
       
       try {
-        setLoading(true);
         const db = getFirestore();
         
-        // Fetch user data
-        const usersRef = collection(db, "users");
-        const userQuery = query(usersRef, where("email", "==", userEmail));
-        const userSnapshot = await getDocs(userQuery);
+        // Verify user exists in users collection (matches isMember() rule)
+        const userDocRef = doc(db, "users", userId);
+        const userDocSnap = await getDoc(userDocRef);
         
-        if (!userSnapshot.empty) {
-          setUserData(userSnapshot.docs[0].data());
+        if (!userDocSnap.exists()) {
+          setError("User account not found");
+          setLoading(false);
+          return;
         }
         
+        // Verify email matches the stored user document
+        const userData = userDocSnap.data();
+        if (userData.email !== userEmail) {
+          setError("User authentication mismatch");
+          setLoading(false);
+          return;
+        }
+        
+        // User is verified as a member
+        setUserData(userData);
+        setIsAuthorized(true);
+        
+        // Fetch additional dashboard data
+        await fetchDashboardData(db);
+        
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError("Failed to verify membership. Please log in again.");
+        setLoading(false);
+      }
+    };
+
+    const fetchDashboardData = async (db) => {
+      try {
         // Fetch courses
         const coursesRef = collection(db, "courses");
         const coursesQuery = query(coursesRef, orderBy("createdAt", "desc"), limit(3));
@@ -77,12 +121,12 @@ const MemberDashboard = () => {
       }
     };
 
-    fetchUserData();
+    verifyMembership();
   }, [userId, userEmail]);
 
-  // Redirect if not a member
-  if (userRole !== "member") {
-    return <Navigate to="/" replace />;
+  // Redirect if not a member or not authorized
+  if (userRole !== "member" || (!loading && !isAuthorized)) {
+    return <Navigate to="/login" replace />;
   }
 
   if (loading) {
@@ -168,28 +212,6 @@ const MemberDashboard = () => {
           </div>
           <div className="card-content">
             <p>No new notifications.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="member-benefits">
-        <h2>Your Member Benefits</h2>
-        <div className="benefits-grid">
-          <div className="benefit-item">
-            <h3>Live Coding Sessions</h3>
-            <p>Access to weekly live coding sessions with industry experts</p>
-          </div>
-          <div className="benefit-item">
-            <h3>Project Reviews</h3>
-            <p>Get feedback on your coding projects from our mentors</p>
-          </div>
-          <div className="benefit-item">
-            <h3>Premium Content</h3>
-            <p>Access to all premium tutorials and courses</p>
-          </div>
-          <div className="benefit-item">
-            <h3>Community Access</h3>
-            <p>Connect with other developers in our private community</p>
           </div>
         </div>
       </div>
