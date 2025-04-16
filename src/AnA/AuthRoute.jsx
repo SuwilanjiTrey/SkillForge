@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
+import "../Styles/loading.css";
 
 const AuthRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -49,7 +50,7 @@ const AuthRoute = ({ children }) => {
   }, []);
 
   if (loading) {
-    return <div>Checking subscription...</div>;
+    return <div className="loading-container">Checking subscription...</div>;
   }
 
   return isMember ? children : <Navigate to="/login" />;
