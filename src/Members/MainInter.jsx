@@ -1,6 +1,5 @@
-// src/components/MemberDashboard.jsx
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { 
   getFirestore, 
   collection, 
@@ -16,9 +15,11 @@ import {
   BookOpen, 
   Calendar, 
   Bell,
-  User
+  User,
+  ChevronRight
 } from "lucide-react";
 import "../Styles/Member.css";
+import CourseData from "./Course&UserData/courses.jsx"; // Import the CourseData class (adjust path as needed)
 
 const MemberDashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -42,32 +43,24 @@ const MemberDashboard = () => {
       }
       
       try {
-        const db = getFirestore();
+        // Create CourseData instance
+        const courseDataService = new CourseData(userId, userEmail);
         
-        // Verify user exists in users collection (matches isMember() rule)
-        const userDocRef = doc(db, "users", userId);
-        const userDocSnap = await getDoc(userDocRef);
+        // Verify user through CourseData class
+        const isVerified = await courseDataService.verifyUser();
         
-        if (!userDocSnap.exists()) {
-          setError("User account not found");
+        if (!isVerified) {
+          setError(courseDataService.getError() || "Verification failed");
           setLoading(false);
           return;
         }
         
-        // Verify email matches the stored user document
-        const userData = userDocSnap.data();
-        if (userData.email !== userEmail) {
-          setError("User authentication mismatch");
-          setLoading(false);
-          return;
-        }
-        
-        // User is verified as a member
-        setUserData(userData);
+        // Set user data
+        setUserData(courseDataService.userData);
         setIsAuthorized(true);
         
-        // Fetch additional dashboard data
-        await fetchDashboardData(db);
+        // Fetch dashboard data using the verified courseDataService
+        await fetchDashboardData(courseDataService);
         
       } catch (err) {
         console.error("Authentication error:", err);
@@ -76,20 +69,21 @@ const MemberDashboard = () => {
       }
     };
 
-    const fetchDashboardData = async (db) => {
+    const fetchDashboardData = async (courseDataService) => {
       try {
-        // Fetch courses
-        const coursesRef = collection(db, "courses");
-        const coursesQuery = query(coursesRef, orderBy("createdAt", "desc"), limit(3));
-        const coursesSnapshot = await getDocs(coursesQuery);
+        // Fetch courses based on user's program and year
+        await courseDataService.fetchCourses();
         
-        const coursesData = [];
-        coursesSnapshot.forEach((doc) => {
-          coursesData.push({ id: doc.id, ...doc.data() });
-        });
-        setCourses(coursesData);
+        // Get first 3 courses
+        setCourses(courseDataService.getRecentCourses(3));
+        
+        // Check if there was an error fetching courses
+        if (courseDataService.getError()) {
+          console.warn("Course fetch warning:", courseDataService.getError());
+        }
         
         // Fetch upcoming live session
+        const db = getFirestore();
         const now = new Date().getTime();
         const sessionsRef = collection(db, "liveSessions");
         const sessionsQuery = query(
@@ -137,7 +131,7 @@ const MemberDashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-header">
         <div className="welcome-section">
-          <h1>Welcome, {userData?.firstName || "Member"}!</h1>
+          <h1>Welcome, {userData?.firstName || userData?.email.split('@')[0] || "Member"}!</h1>
           <p>Continue your learning journey with Skillforge Dev Hub</p>
         </div>
         <div className="user-info">
@@ -157,22 +151,35 @@ const MemberDashboard = () => {
       <div className="dashboard-grid">
         <div className="dashboard-card">
           <div className="card-header">
-            <BookOpen size={24} />
-            <h2>My Courses</h2>
+            <div className="card-header-left">
+              <BookOpen size={24} />
+              <h2>My Courses</h2>
+              {userData?.program && userData?.yearOfStudy && (
+                <span className="program-badge">{userData.program} - {userData.yearOfStudy}</span>
+              )}
+            </div>
+            <Link to="/courses" className="view-all-button">
+              View All Courses
+              <ChevronRight size={16} />
+            </Link>
           </div>
           <div className="card-content">
             {courses.length > 0 ? (
               <ul className="course-list">
                 {courses.map((course) => (
                   <li key={course.id} className="course-item">
-                    <h3>{course.title}</h3>
-                    <p>{course.description}</p>
+                    <h3>{course.title || "Untitled Course"}</h3>
+                    <p>{course.description || "No description available"}</p>
+                    <div className="course-meta">
+                      {course.targetYear && <span className="course-year">{course.targetYear}</span>}
+                      {course.targetPrograms && <span className="course-program">{course.targetPrograms}</span>}
+                    </div>
                     <button className="course-button">Continue Learning</button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>No courses available currently.</p>
+              <p>No courses available for your program and year of study.</p>
             )}
           </div>
         </div>

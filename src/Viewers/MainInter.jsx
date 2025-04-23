@@ -73,9 +73,9 @@ const ViewerDashboard = () => {
   }, [userEmail]);
 
   // Redirect if not a viewer
-  if (userRole !== "viewer") {
+  /*if (userRole !== "viewer") {
     return <Navigate to="/" replace />;
-  }
+  }*/
 
   if (loading) {
     return <div className="loading-container">Loading content...</div>;
@@ -174,7 +174,7 @@ const ViewerDashboard = () => {
         <div className="plans">
           <div className="plan-card">
             <h3>Monthly Plan</h3>
-            <div className="price">$19.99<span>/month</span></div>
+            <div className="price">K50<span>/month</span></div>
             <ul className="features">
               <li>Access all premium courses</li>
               <li>Weekly live coding sessions</li>

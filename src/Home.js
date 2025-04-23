@@ -56,7 +56,7 @@ const HomePage = () => {
           <h1>Developer Hub</h1>
         </div>
         <nav className="nav-links">
-          <a href="#courses" className="nav-link">Courses</a>
+          <a href="/viewer" className="nav-link">Courses</a>
           <a href="#resources" className="nav-link">Resources</a>
           <a href="#community" className="nav-link">Community</a>
           

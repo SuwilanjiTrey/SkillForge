@@ -11,8 +11,11 @@ import MemberDashboard from "./Members/MainInter.jsx";
 import OnlineCompiler from "./Members/Compiler.jsx";
 import Settings from "./System/Settings.jsx";
 import MathSolver from "./Members/MathModule.jsx";
-import PastPapers from "./Members/past_papers.jsx";
+
 import NavigationDrawer from "./System/MemberNavigation.jsx";
+import CoursePageDisplay from "./Members/CoursesPage.jsx";
+import AssessmentDisplay from "./Members/past_papers.jsx";
+import Trey from "./Test.tsx";
 
 const App = () => {
   // Helper component to wrap member routes with NavigationDrawer
@@ -32,6 +35,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/viewer" element={<ViewerDashboard />} />
+        <Route path="/test" element={<Trey />} />
         
         {/* Protected member routes with NavigationDrawer */}
         <Route
@@ -39,6 +43,22 @@ const App = () => {
           element={
             <MemberRoute>
               <MemberDashboard />
+            </MemberRoute>
+          }
+        />
+        <Route
+          path="/courses"
+          element={
+            <MemberRoute>
+              <CoursePageDisplay />
+            </MemberRoute>
+          }
+        />
+        <Route
+          path="/papers"
+          element={
+            <MemberRoute>
+              <AssessmentDisplay />
             </MemberRoute>
           }
         />
@@ -66,15 +86,7 @@ const App = () => {
             </MemberRoute>
           }
         />
-        <Route
-          path="/past-papers"
-          element={
-            <MemberRoute>
-              <PastPapers />
-            </MemberRoute>
-          }
-        />
-        
+       
         {/* Protected admin routes */}
         <Route
           path="/admin"

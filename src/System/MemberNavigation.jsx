@@ -1,6 +1,8 @@
 // src/components/NavigationDrawer.jsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import {
   User,
   FileText,
@@ -8,16 +10,32 @@ import {
   Calculator,
   Settings,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 import "../Styles/nav.css";
 
 const NavigationDrawer = ({ children }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userId");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+    
 
   return (
     <div className="dashboard-layout">
@@ -35,7 +53,7 @@ const NavigationDrawer = ({ children }) => {
               <User size={20} />
               <span>Dashboard</span>
             </Link>
-            <Link to="/past-papers" className="nav-item">
+            <Link to="/papers" className="nav-item">
               <FileText size={20} />
               <span>Past Papers</span>
             </Link>
@@ -51,6 +69,11 @@ const NavigationDrawer = ({ children }) => {
               <Settings size={20} />
               <span>Settings</span>
             </Link>
+
+            <button className="logout-button" onClick={handleLogout}>
+          <LogOut size={18} />
+          <span>Logout</span>
+        </button>
           </nav>
         </div>
       </div>
