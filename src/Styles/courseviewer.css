@@ -1,0 +1,219 @@
+.course-viewer-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .course-viewer-header {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 20px;
+  }
+  
+  .course-viewer-header h1 {
+    font-size: 32px;
+    margin: 15px 0;
+    color: #333;
+  }
+  
+  .course-info {
+    margin-top: 15px;
+  }
+  
+  .course-description {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 15px;
+    line-height: 1.5;
+  }
+  
+  .course-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .course-year, .course-program {
+    background-color: #f3f4f6;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+  
+  .back-button {
+    background-color: #f5f5f5;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: #333;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .back-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .course-content-layout {
+    display: flex;
+    gap: 30px;
+    min-height: 600px;
+  }
+  
+  .modules-sidebar {
+    flex: 0 0 300px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .modules-sidebar h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .modules-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .module-item {
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .module-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .module-item.active {
+    background-color: #e8f4ff;
+    border-left: 4px solid #3498db;
+  }
+  
+  .module-title {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+  }
+  
+  .module-number {
+    background-color: #3498db;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 12px;
+  }
+  
+  .content-list {
+    list-style: none;
+    padding: 5px 0 0 34px;
+    margin: 10px 0 0 0;
+  }
+  
+  .content-item {
+    padding: 8px 10px;
+    margin: 5px 0;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .content-item:hover {
+    background-color: #eaeaea;
+  }
+  
+  .content-item.active {
+    background-color: #e3f2fd;
+    font-weight: 500;
+  }
+  
+  .content-display-area {
+    flex: 1;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  
+  .content-viewer {
+    width: 100%;
+  }
+  
+  .content-viewer h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .content-viewer p {
+    color: #666;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  
+  .document-frame, .video-frame {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+  }
+  
+  .document-link, .video-link, .content-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+  
+  .document-link:hover, .video-link:hover, .content-link:hover {
+    background-color: #2980b9;
+  }
+  
+  .loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    font-size: 18px;
+    color: #666;
+  }
+  
+  .error-message {
+    padding: 20px;
+    background-color: #fee2e2;
+    border-left: 4px solid #ef4444;
+    color: #b91c1c;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+  
+  .no-content-message {
+    padding: 30px;
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+  }

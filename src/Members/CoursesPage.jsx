@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CourseData from "./Course&UserData/courses";
 import "../Styles/assessments.css";
 
 const CoursePageDisplay = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [selectedYear, setSelectedYear] = useState("all");
@@ -40,9 +42,16 @@ const CoursePageDisplay = () => {
     if (selectedYear === "all") {
       setFilteredCourses(courses);
     } else {
-      const filtered = courses.filter(
-        (course) => course.targetYear === selectedYear
-      );
+      // Check if targetYears is an array and filter accordingly
+      const filtered = courses.filter(course => {
+        if (Array.isArray(course.targetYears)) {
+          return course.targetYears.includes(selectedYear);
+        } else if (course.targetYear) {
+          // For backward compatibility with the previous structure
+          return course.targetYear === selectedYear;
+        }
+        return false;
+      });
       setFilteredCourses(filtered);
     }
   }, [selectedYear, courses]);
@@ -50,6 +59,11 @@ const CoursePageDisplay = () => {
   // Handle year filter change
   const handleYearFilter = (year) => {
     setSelectedYear(year);
+  };
+
+  // Handle course click - navigate to CourseViewer
+  const handleCourseClick = (courseId) => {
+    navigate(`/course/${courseId}`);
   };
 
   if (loading) {
@@ -117,16 +131,23 @@ const CoursePageDisplay = () => {
             <div className="course-card" key={course.id}>
               <div className="course-card-header">
                 <h3>{course.title}</h3>
-                <span className="course-year">{course.targetYear}</span>
+                <span className="course-year">
+                  {Array.isArray(course.targetYears) 
+                    ? course.targetYears.join(", ") 
+                    : course.targetYear}
+                </span>
               </div>
               <div className="course-card-body">
                 <p className="course-code">{course.courseCode}</p>
-                <p className="course-description">{course.description}</p>
+                <div className="course-description" dangerouslySetInnerHTML={{ __html: course.description }}></div>
               </div>
               <div className="course-card-footer">
-                <a href={`/course/${course.id}`} className="view-course-btn">
+                <button 
+                  onClick={() => handleCourseClick(course.id)} 
+                  className="view-course-btn"
+                >
                   View Course
-                </a>
+                </button>
               </div>
             </div>
           ))

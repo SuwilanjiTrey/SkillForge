@@ -11,7 +11,7 @@ import MemberDashboard from "./Members/MainInter.jsx";
 import OnlineCompiler from "./Members/Compiler.jsx";
 import Settings from "./System/Settings.jsx";
 import MathSolver from "./Members/MathModule.jsx";
-
+import CourseViewer from "./Members/CourseViewer.jsx";
 import NavigationDrawer from "./System/MemberNavigation.jsx";
 import CoursePageDisplay from "./Members/CoursesPage.jsx";
 import AssessmentDisplay from "./Members/past_papers.jsx";
@@ -62,6 +62,16 @@ const App = () => {
             </MemberRoute>
           }
         />
+
+        <Route
+          path="/course/:courseId"
+          element={
+            <MemberRoute>
+               <CourseViewer />
+            </MemberRoute>
+          }
+        />
+
         <Route
           path="/compiler"
           element={
