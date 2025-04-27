@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import CourseData from "./Course&UserData/courses.jsx";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import "../Styles/courseviewer.css";
+
 
 const CourseViewer = () => {
   const { courseId } = useParams();
@@ -10,6 +12,8 @@ const CourseViewer = () => {
   const [activeModule, setActiveModule] = useState(null);
   const [activeContent, setActiveContent] = useState(null);
   const [documentContent, setDocumentContent] = useState(null);
+  const [documentLoading, setDocumentLoading] = useState(false);
+  const [documentError, setDocumentError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -49,48 +53,6 @@ const CourseViewer = () => {
     fetchCourseData();
   }, [courseId]);
 
-  const fetchDocumentContent = async (content) => {
-    if (!content || !content.url) return;
-    
-    try {
-      setDocumentContent("Loading document content...");
-      
-      // Extract document ID from Google Drive URL
-      const docId = extractGoogleDocId(content.url);
-      
-      if (!docId) {
-        setDocumentContent("Unable to extract document ID from URL. Please check the document link.");
-        return;
-      }
-      
-      // Fetch document content using your backend API or Google Drive API
-      const response = await fetch(`/api/documents/${docId}`);
-      
-      if (!response.ok) {
-        // If backend API fails, let's provide a direct link as fallback
-        setDocumentContent(`
-          <div class="document-fallback">
-            <p>Document couldn't be loaded directly in the page.</p>
-            <p>You can <a href="${content.url}" target="_blank" rel="noopener noreferrer">view it on Google Drive</a> instead.</p>
-            <p>Or view the preview below:</p>
-          </div>
-        `);
-        return;
-      }
-      
-      const data = await response.json();
-      setDocumentContent(data.content);
-    } catch (err) {
-      console.error("Error fetching document content:", err);
-      setDocumentContent(`
-        <div class="document-fallback">
-          <p>An error occurred while loading the document.</p>
-          <p>You can <a href="${content.url}" target="_blank" rel="noopener noreferrer">view it on Google Drive</a> instead.</p>
-        </div>
-      `);
-    }
-  };
-
   const extractGoogleDocId = (url) => {
     if (!url) return null;
     
@@ -98,7 +60,8 @@ const CourseViewer = () => {
     const regexPatterns = [
       /\/d\/([a-zA-Z0-9-_]+)/,
       /id=([a-zA-Z0-9-_]+)/,
-      /\/document\/d\/([a-zA-Z0-9-_]+)/
+      /\/document\/d\/([a-zA-Z0-9-_]+)/,
+      /\/file\/d\/([a-zA-Z0-9-_]+)/
     ];
     
     for (const regex of regexPatterns) {
@@ -109,6 +72,56 @@ const CourseViewer = () => {
     }
     
     return null;
+  };
+
+  const fetchDocumentContent = async (content) => {
+    if (!content || !content.url) {
+      setDocumentContent("<p>No document URL provided</p>");
+      return;
+    }
+    
+    try {
+      setDocumentLoading(true);
+      setDocumentError(null);
+      
+      // Extract document ID from Google Drive URL
+      const docId = extractGoogleDocId(content.url);
+      
+      if (!docId) {
+        setDocumentError("Unable to extract document ID from URL. Please check the document link.");
+        setDocumentLoading(false);
+        return;
+      }
+      
+      // Method 1: Using Firebase Cloud Function (preferred)
+      try {
+        const functions = getFunctions();
+        const getGoogleDriveDocument = httpsCallable(functions, 'getGoogleDriveDocument');
+        const result = await getGoogleDriveDocument({ id: docId });
+        
+        if (result.data && result.data.content) {
+          setDocumentContent(result.data.content);
+        } else {
+          throw new Error("No content returned");
+        }
+      } catch (err) {
+        console.error("Firebase function error:", err);
+        
+        // Method 2: Fallback - Direct embed approach
+        setDocumentContent(`
+          <div class="document-fallback">
+            <p>We couldn't load the document content directly.</p>
+            <p>You can <a href="${content.url}" target="_blank" rel="noopener noreferrer">view it on Google Drive</a> instead.</p>
+          </div>
+        `);
+      }
+      
+    } catch (err) {
+      console.error("Error fetching document content:", err);
+      setDocumentError("Failed to load document. Please try again or open it in Google Drive.");
+    } finally {
+      setDocumentLoading(false);
+    }
   };
 
   const handleModuleClick = (module) => {
@@ -137,6 +150,10 @@ const CourseViewer = () => {
     }
   };
 
+//1. Take note of your session ID:
+
+//2CAD0
+
   const handleBackClick = () => {
     navigate(-1); // Navigate back to previous page
   };
@@ -154,6 +171,8 @@ const CourseViewer = () => {
 
     switch (content.type) {
       case "document":
+        const docId = extractGoogleDocId(content.url);
+        
         return (
           <div className="content-viewer document-viewer">
             <h3>{content.title}</h3>
@@ -161,32 +180,38 @@ const CourseViewer = () => {
             
             {/* Document Content Display */}
             <div className="document-content-area">
-              {documentContent ? (
+              {documentLoading ? (
+                <div className="document-loading">Loading document content...</div>
+              ) : documentError ? (
+                <div className="document-error">{documentError}</div>
+              ) : documentContent ? (
                 <div 
                   className="document-content" 
                   dangerouslySetInnerHTML={{ __html: documentContent }}
                 />
               ) : (
-                <div className="document-loading">Loading document content...</div>
+                <div className="document-loading">Preparing document...</div>
               )}
             </div>
             
-            {/* Fallback: Google Drive Embed */}
-            <div className="document-embed-fallback">
-              <h4>Google Drive Preview:</h4>
-              <iframe 
-                src={`https://drive.google.com/file/d/${extractGoogleDocId(content.url)}/preview`} 
-                title={content.title}
-                width="100%" 
-                height="500" 
-                allow="autoplay" 
-                className="document-frame"
-              ></iframe>
-            </div>
+            {/* Direct Google Drive embedding as fallback */}
+            {docId && (
+              <div className="document-embed-fallback">
+                <h4>Document Preview:</h4>
+                <iframe 
+                  src={`https://drive.google.com/file/d/${docId}/preview`} 
+                  title={content.title}
+                  width="100%" 
+                  height="500" 
+                  allow="autoplay" 
+                  className="document-frame"
+                ></iframe>
+              </div>
+            )}
             
             {/* Additional link to open in Google Drive */}
             <div className="document-external-link">
-              <a href={content.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+              <a href={content.url} target="_blank" rel="noopener noreferrer">
                 Open in Google Drive
               </a>
             </div>
@@ -237,6 +262,7 @@ const CourseViewer = () => {
     }
   };
 
+  // Rest of your component remains the same
   if (loading) {
     return (
       <div className="course-viewer-container">
