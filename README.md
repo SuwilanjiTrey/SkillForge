@@ -1,70 +1,87 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+🚀 Skillforge — Student Learning Application
 
-## Available Scripts
 
-In the project directory, you can run:
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+✨ Key Features
+📚 Accessible Tutorials
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    Students can explore tutorials organized by topic to reinforce their understanding of Computer Science concepts outside lecture hours.
 
-### `npm test`
+💻 Coding Practice Environment
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    Interactive coding practice area for sharpening programming skills.
 
-### `npm run build`
+    Immediate feedback mechanisms (planned) to enhance the learning-by-doing approach.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+🌐 Virtual Tutorial Sessions
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    Overcomes limited physical classroom space.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    Integrated with Google Meet for live online tutorial sessions.
 
-### `npm run eject`
+🗂️ Academic Resources Access
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+    Centralized access to:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+        Past exam papers
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+        Study guides
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+        Lecture supplements
 
-## Learn More
+🔐 User Authentication
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    Secure login and registration through Firebase Authentication.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+🛠️ Built With
 
-### Code Splitting
+    Frontend: React.js (JavaScript, HTML, CSS)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+    Backend: Firebase Functions / Node.js
 
-### Analyzing the Bundle Size
+    Database: Firebase Firestore
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+    Hosting: Firebase Hosting
 
-### Making a Progressive Web App
+    Authentication: Firebase Authentication
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    Real-Time Communication: Google Meet (current), with planned future LiveKit integration.
 
-### Advanced Configuration
+📈 Future Improvements
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+    Auto-grading system for code submissions.
 
-### Deployment
+    Mobile application versions (Android/iOS).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+    Gamification (badges, leaderboards).
 
-### `npm run build` fails to minify
+    Student discussion forums.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    Progress analytics and reporting dashboard.
+
+🌐 Live Demo
+
+🔗 Visit Skillforge Here
+🤝 Contributing
+
+Contributions are welcome!
+
+    Fork this repository
+
+    Create your feature branch (git checkout -b feature/AmazingFeature)
+
+    Commit your changes (git commit -m 'Add some AmazingFeature')
+
+    Push to the branch (git push origin feature/AmazingFeature)
+
+    Open a Pull Request
+
+📝 License
+
+This project is licensed under the MIT License.
+👨‍💻 Author
+
+Suwilanji Trey Chellah
+University of Zambia | Department of Computing and Informatics
