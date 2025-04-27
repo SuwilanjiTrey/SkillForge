@@ -20,6 +20,7 @@
 
 #ignore config files that hold firebase api keys
 /src/Config
+/functions
 
 npm-debug.log*
 yarn-debug.log*
