@@ -15,7 +15,7 @@ import CourseViewer from "./Members/CourseViewer.jsx";
 import NavigationDrawer from "./System/MemberNavigation.jsx";
 import CoursePageDisplay from "./Members/CoursesPage.jsx";
 import AssessmentDisplay from "./Members/past_papers.jsx";
-import Trey from "./Test.tsx";
+
 
 const App = () => {
   // Helper component to wrap member routes with NavigationDrawer
