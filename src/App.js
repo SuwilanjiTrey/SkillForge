@@ -35,7 +35,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/viewer" element={<ViewerDashboard />} />
-        <Route path="/test" element={<Trey />} />
+        
         
         {/* Protected member routes with NavigationDrawer */}
         <Route

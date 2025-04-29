@@ -4,7 +4,6 @@ import CourseData from "./Course&UserData/courses.jsx";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import "../Styles/courseviewer.css";
 
-
 const CourseViewer = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -61,7 +60,9 @@ const CourseViewer = () => {
       /\/d\/([a-zA-Z0-9-_]+)/,
       /id=([a-zA-Z0-9-_]+)/,
       /\/document\/d\/([a-zA-Z0-9-_]+)/,
-      /\/file\/d\/([a-zA-Z0-9-_]+)/
+      /\/file\/d\/([a-zA-Z0-9-_]+)/,
+      /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/,
+      /\/presentation\/d\/([a-zA-Z0-9-_]+)/
     ];
     
     for (const regex of regexPatterns) {
@@ -93,27 +94,26 @@ const CourseViewer = () => {
         return;
       }
       
-      // Method 1: Using Firebase Cloud Function (preferred)
-      try {
-        const functions = getFunctions();
-        const getGoogleDriveDocument = httpsCallable(functions, 'getGoogleDriveDocument');
-        const result = await getGoogleDriveDocument({ id: docId });
-        
-        if (result.data && result.data.content) {
-          setDocumentContent(result.data.content);
-        } else {
-          throw new Error("No content returned");
+      // Only fetch document content for Google Docs
+      // Sheets, Slides and other types will be embedded
+      if (getGoogleFileType(content.url) === "Google Doc") {
+        try {
+          const functions = getFunctions();
+          const getGoogleDriveDocument = httpsCallable(functions, 'getGoogleDriveDocument');
+          const result = await getGoogleDriveDocument({ id: docId });
+          
+          if (result.data && result.data.content) {
+            setDocumentContent(result.data.content);
+          } else {
+            throw new Error("No content returned");
+          }
+        } catch (err) {
+          console.error("Firebase function error:", err);
+          setDocumentContent(null);
         }
-      } catch (err) {
-        console.error("Firebase function error:", err);
-        
-        // Method 2: Fallback - Direct embed approach
-        setDocumentContent(`
-          <div class="document-fallback">
-            <p>We couldn't load the document content directly.</p>
-            <p>You can <a href="${content.url}" target="_blank" rel="noopener noreferrer">view it on Google Drive</a> instead.</p>
-          </div>
-        `);
+      } else {
+        // For Sheets, Slides, etc., we won't fetch content
+        setDocumentContent(null);
       }
       
     } catch (err) {
@@ -150,12 +150,48 @@ const CourseViewer = () => {
     }
   };
 
-//1. Take note of your session ID:
-
-//2CAD0
-
   const handleBackClick = () => {
     navigate(-1); // Navigate back to previous page
+  };
+
+  // Function to determine if the URL is for a Google service
+  const isGoogleService = (url) => {
+    if (!url) return false;
+    return url.includes("docs.google.com") || url.includes("slides.google.com") || 
+           url.includes("sheets.google.com") || url.includes("drive.google.com");
+  };
+
+  // Function to get the file type based on URL
+  const getGoogleFileType = (url) => {
+    if (!url) return "Document";
+    if (url.includes("docs.google.com/document")) return "Google Doc";
+    if (url.includes("docs.google.com/spreadsheets") || url.includes("sheets.google.com")) return "Google Sheet";
+    if (url.includes("docs.google.com/presentation") || url.includes("slides.google.com")) return "Google Slides";
+    if (url.includes("docs.google.com/forms")) return "Google Form";
+    if (url.includes("docs.google.com/drawings")) return "Google Drawing";
+    return "Google Document";
+  };
+
+  // Function to get embedding URL based on file type
+  const getEmbedUrl = (url, docId) => {
+    if (!url || !docId) return null;
+    
+    const fileType = getGoogleFileType(url);
+    
+    switch (fileType) {
+      case "Google Doc":
+        return `https://docs.google.com/document/d/${docId}/preview`;
+      case "Google Sheet":
+        return `https://docs.google.com/spreadsheets/d/${docId}/preview`;
+      case "Google Slides":
+        return `https://docs.google.com/presentation/d/${docId}/embed?start=false&loop=false&delayms=3000`;
+      case "Google Form":
+        return `https://docs.google.com/forms/d/${docId}/viewform?embedded=true`;
+      case "Google Drawing":
+        return `https://docs.google.com/drawings/d/${docId}/preview`;
+      default:
+        return `https://drive.google.com/file/d/${docId}/preview`;
+    }
   };
 
   // Function to render content based on type
@@ -173,50 +209,111 @@ const CourseViewer = () => {
       case "document":
         const docId = extractGoogleDocId(content.url);
         
-        return (
-          <div className="content-viewer document-viewer">
-            <h3>{content.title}</h3>
-            <p>{content.description}</p>
-            
-            {/* Document Content Display */}
-            <div className="document-content-area">
-              {documentLoading ? (
-                <div className="document-loading">Loading document content...</div>
-              ) : documentError ? (
-                <div className="document-error">{documentError}</div>
-              ) : documentContent ? (
-                <div 
-                  className="document-content" 
-                  dangerouslySetInnerHTML={{ __html: documentContent }}
-                />
-              ) : (
-                <div className="document-loading">Preparing document...</div>
+        // Check if it's a Google service document
+        if (isGoogleService(content.url)) {
+          const fileType = getGoogleFileType(content.url);
+          const embedUrl = getEmbedUrl(content.url, docId);
+          
+          return (
+            <div className="content-viewer document-viewer">
+              <h3>{content.title}</h3>
+              <p>{content.description}</p>
+              
+              {/* Google Doc/Sheet/Slides viewer */}
+              <div className="google-doc-container">
+                <div className="google-doc-header">
+                  <div className="google-doc-icon">
+                    <img 
+                      src={`/assets/icons/${fileType.toLowerCase().replace(/\s+/g, "-")}-icon.png`} 
+                      alt={fileType} 
+                      onError={(e) => {e.target.src = "/assets/icons/docs-icon.png"}}
+                    />
+                  </div>
+                  <div className="google-doc-info">
+                    <h4>{content.title}</h4>
+                    <p>{fileType}</p>
+                  </div>
+                  <div className="google-doc-actions">
+                    <a 
+                      href={content.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="google-drive-button"
+                    >
+                      Open in Google Drive
+                    </a>
+                  </div>
+                </div>
+                
+                {/* Embedded viewer for all Google document types */}
+                <div className="google-doc-embed">
+                  <iframe 
+                    src={embedUrl}
+                    title={content.title}
+                    width="100%" 
+                    height="600" 
+                    frameBorder="0" 
+                    allowFullScreen
+                    className="google-doc-frame"
+                  ></iframe>
+                </div>
+              </div>
+              
+              {/* Keep the document content for Google Docs for fallback and review functionality */}
+              {documentContent && fileType === "Google Doc" && (
+                <div className="document-content-hidden" style={{ display: 'none' }}>
+                  <div dangerouslySetInnerHTML={{ __html: documentContent }} />
+                </div>
               )}
             </div>
-            
-            {/* Direct Google Drive embedding as fallback */}
-            {docId && (
-              <div className="document-embed-fallback">
-                <h4>Document Preview:</h4>
-                <iframe 
-                  src={`https://drive.google.com/file/d/${docId}/preview`} 
-                  title={content.title}
-                  width="100%" 
-                  height="500" 
-                  allow="autoplay" 
-                  className="document-frame"
-                ></iframe>
+          );
+        } else {
+          // For non-Google Docs, keep the existing document view implementation
+          return (
+            <div className="content-viewer document-viewer">
+              <h3>{content.title}</h3>
+              <p>{content.description}</p>
+              
+              {/* Document Content Display */}
+              <div className="document-content-area">
+                {documentLoading ? (
+                  <div className="document-loading">Loading document content...</div>
+                ) : documentError ? (
+                  <div className="document-error">{documentError}</div>
+                ) : documentContent ? (
+                  <div 
+                    className="document-content" 
+                    dangerouslySetInnerHTML={{ __html: documentContent }}
+                  />
+                ) : (
+                  <div className="document-loading">Preparing document...</div>
+                )}
               </div>
-            )}
-            
-            {/* Additional link to open in Google Drive */}
-            <div className="document-external-link">
-              <a href={content.url} target="_blank" rel="noopener noreferrer">
-                Open in Google Drive
-              </a>
+              
+              {/* Direct Google Drive embedding as fallback */}
+              {docId && (
+                <div className="document-embed-fallback">
+                  <h4>Document Preview:</h4>
+                  <iframe 
+                    src={`https://drive.google.com/file/d/${docId}/preview`} 
+                    title={content.title}
+                    width="100%" 
+                    height="500" 
+                    allow="autoplay" 
+                    className="document-frame"
+                  ></iframe>
+                </div>
+              )}
+              
+              {/* Additional link to open in Google Drive */}
+              <div className="document-external-link">
+                <a href={content.url} target="_blank" rel="noopener noreferrer">
+                  Open in Google Drive
+                </a>
+              </div>
             </div>
-          </div>
-        );
+          );
+        }
       
       case "video":
         const videoId = getYouTubeId(content.url);
