@@ -17,6 +17,7 @@ class PremiumUserData {
   constructor(userId, userEmail) {
     this.userId = userId;
     this.userEmail = userEmail;
+
     this.db = getFirestore();
     
     // User data cache
@@ -55,6 +56,7 @@ class PremiumUserData {
       }
       
       this.userData = userDocSnap.data();
+      //console.log("Firebase user data retrieved:", this.userData);
       
       // Verify email matches the stored user document
       if (this.userData.email !== this.userEmail) {
@@ -78,8 +80,12 @@ class PremiumUserData {
    * Load user data from userData object into class properties
    */
   loadUserData() {
-    if (!this.userData) return;
+    if (!this.userData) {
+      console.warn("No userData available to load");
+      return;
+    }
     
+    // Assign values from userData to class properties
     this.email = this.userData.email || null;
     this.program = this.userData.program || null;
     this.yearOfStudy = this.userData.yearOfStudy || null;
@@ -88,26 +94,62 @@ class PremiumUserData {
     this.subscriptionStart = this.userData.subscriptionStart || null;
     this.subscriptionEnd = this.userData.subscriptionEnd || null;
     this.createdAt = this.userData.createdAt || null;
+
+    /* logging to verify data is loaded
+    console.log("User data loaded into class properties:");
+    console.log("Email:", this.email);
+    console.log("Program:", this.program);
+    console.log("Year of Study:", this.yearOfStudy);
+    console.log("Role:", this.role);
+    console.log("Subscription Start:", this.subscriptionStart);
+    console.log("Subscription End:", this.subscriptionEnd);
+    console.log("Created At:", this.createdAt);
+	*/
+  }
+
+  /**
+   * Refresh user data from Firestore (useful if data might have changed)
+   * @returns {Promise<boolean>} Whether refresh was successful
+   */
+  async refreshUserData() {
+    try {
+      const userDocRef = doc(this.db, "users", this.userId);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      if (!userDocSnap.exists()) {
+        this.error = "User account not found during refresh";
+        return false;
+      }
+      
+      this.userData = userDocSnap.data();
+      this.loadUserData();
+      
+      console.log("User data refreshed successfully");
+      return true;
+    } catch (err) {
+      console.error("Error refreshing user data:", err);
+      this.error = "Failed to refresh user data";
+      return false;
+    }
   }
 
   /**
    * Fetch user data from Firestore
    * @returns {Promise<Object|null>} User data object or null if not found
    */
-async fetchUserData() {
-  if (!this.isVerified) {
-    const verified = await this.verifyUser();
-    if (!verified) return null;
+  async fetchUserData() {
+    if (!this.isVerified) {
+      const verified = await this.verifyUser();
+      if (!verified) return null;
+    }
+    
+    return this.userData;
   }
-  
-  return this.userData;
-}
+
   /**
    * Check if user is a premium member (has valid subscription)
    * @returns {boolean} Whether user is a premium member
    */
-
-
   isPremiumMember() {
     if (!this.userData || !this.role) return false;
     
@@ -115,7 +157,6 @@ async fetchUserData() {
     return this.role === "member" || this.role === "admin";
   }
 
-  
   /**
    * Check if user is an admin
    * @returns {boolean} Whether user is an admin
@@ -182,6 +223,7 @@ async fetchUserData() {
    * @returns {string|null} User's email
    */
   getEmail() {
+    console.log("Email retrieved:", this.email);
     return this.email;
   }
 
@@ -191,6 +233,14 @@ async fetchUserData() {
    */
   getRole() {
     return this.role;
+  }
+
+  /**
+   * Get user id
+   * @returns {string|null} User's id in firebase
+   */
+  getUiD() {
+    return this.userId;
   }
 
   /**

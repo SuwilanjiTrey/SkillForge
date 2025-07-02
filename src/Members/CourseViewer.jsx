@@ -22,6 +22,9 @@ const CourseViewer = () => {
         const userId = localStorage.getItem("userId");
         const userEmail = localStorage.getItem("userEmail");
 
+	
+	// call the course data class
+
         const courseDataService = new CourseData(userId, userEmail);
         const courseData = await courseDataService.getCourseById(courseId);
 
@@ -222,13 +225,7 @@ const CourseViewer = () => {
               {/* Google Doc/Sheet/Slides viewer */}
               <div className="google-doc-container">
                 <div className="google-doc-header">
-                  <div className="google-doc-icon">
-                    <img 
-                      src={`/assets/icons/${fileType.toLowerCase().replace(/\s+/g, "-")}-icon.png`} 
-                      alt={fileType} 
-                      onError={(e) => {e.target.src = "/assets/icons/docs-icon.png"}}
-                    />
-                  </div>
+                  
                   <div className="google-doc-info">
                     <h4>{content.title}</h4>
                     <p>{fileType}</p>
@@ -240,7 +237,7 @@ const CourseViewer = () => {
                       rel="noopener noreferrer" 
                       className="google-drive-button"
                     >
-                      Open in Google Drive
+                      Open file
                     </a>
                   </div>
                 </div>

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CourseData from "./Course&UserData/courses";
-import "../Styles/assessments.css";
+import PremiumUserData from "./Course&UserData/userData.jsx";
+import "../Styles/CoursePage.css";
 
 const CoursePageDisplay = () => {
   const navigate = useNavigate();
@@ -17,8 +18,24 @@ const CoursePageDisplay = () => {
         const userId = localStorage.getItem("userId");
         const userEmail = localStorage.getItem("userEmail");
 
-        const courseDataService = new CourseData(userId, userEmail);
+        const userDataService = new PremiumUserData(userId, userEmail);
+        await userDataService.verifyUser();
+        
+        const newemail = userDataService.getEmail();
+        const newuid = userDataService.getUiD();
+        
+        const courseDataService = new CourseData(newuid, newemail);
         const coursesData = await courseDataService.fetchCourses();
+        
+        // FIXED: Properly handle debug data
+        //const debugData = courseDataService.debugCourseStructure();
+        //console.log("courses debug data: ", debugData);
+        
+        // Optional: Get all courses for comparison
+        const allCoursesData = await courseDataService.fetchAllCourses();
+        console.log("all courses data: ", allCoursesData);
+
+	console.log("courses data: ", coursesData);
 
         if (courseDataService.getError()) {
           setError(courseDataService.getError());
@@ -49,6 +66,9 @@ const CoursePageDisplay = () => {
         } else if (course.targetYear) {
           // For backward compatibility with the previous structure
           return course.targetYear === selectedYear;
+        } else if (typeof course.targetYears === 'string') {
+          // Handle string targetYears
+          return course.targetYears === selectedYear;
         }
         return false;
       });
@@ -134,7 +154,7 @@ const CoursePageDisplay = () => {
                 <span className="course-year">
                   {Array.isArray(course.targetYears) 
                     ? course.targetYears.join(", ") 
-                    : course.targetYear}
+                    : course.targetYear || course.targetYears}
                 </span>
               </div>
               <div className="course-card-body">

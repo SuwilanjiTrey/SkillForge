@@ -15,7 +15,7 @@ import CourseViewer from "./Members/CourseViewer.jsx";
 import NavigationDrawer from "./System/MemberNavigation.jsx";
 import CoursePageDisplay from "./Members/CoursesPage.jsx";
 import AssessmentDisplay from "./Members/past_papers.jsx";
-
+import Loading from "./components/loading.jsx";
 
 const App = () => {
   // Helper component to wrap member routes with NavigationDrawer
@@ -35,6 +35,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/viewer" element={<ViewerDashboard />} />
+	<Route path="/loading" element={<Loading />} />
         
         
         {/* Protected member routes with NavigationDrawer */}
