@@ -20,7 +20,7 @@
   }
   
   .navigation-drawer.closed {
-    transform: translateX(-250px);
+    transform: translateX(-280px);
   }
   
   .drawer-header {

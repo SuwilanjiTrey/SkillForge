@@ -44,9 +44,9 @@ const AssessmentDisplay = () => {
         await userDataService.fetchUserData();
 
         // Debug logs
-        console.log("User data loaded:", userDataService.getUserData());
-        console.log("User role:", userDataService.getRole());
-        console.log("Is premium by role check:", userDataService.isPremiumMember());
+        //console.log("User data loaded:", userDataService.getUserData());
+        //console.log("User role:", userDataService.getRole());
+        //console.log("Is premium by role check:", userDataService.isPremiumMember());
 
         setIsPremium(userDataService.isPremiumMember());
         
@@ -62,7 +62,7 @@ const AssessmentDisplay = () => {
           }
           
           // Fetch assessments
-          const assessmentsList = await assessmentService.fetchAssessments();
+          const assessmentsList = await assessmentService.fetchAssessments();  //works perfectly ✅️
           
           if (assessmentService.getError()) {
             setError(assessmentService.getError());
@@ -70,7 +70,7 @@ const AssessmentDisplay = () => {
             return;
           }
           
-          console.log("Assessments loaded:", assessmentsList);
+          //console.log("Assessments loaded:", assessmentsList);
           
           setAssessments(assessmentsList);
           setFilteredAssessments(assessmentsList);
