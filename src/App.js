@@ -1,21 +1,36 @@
+//==============// React imports //=================//
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from "./Home";
-import AdminDashboard from "./Admin/Admin";
-import AdminRoute from "./Admin/AdminRoute";
+//==============// Auth imports //=================//
 import Login from "./AnA/Login";
 import Register from "./AnA/Register";
 import AuthRoute from "./AnA/AuthRoute";
-import ViewerDashboard from "./Viewers/MainInter.jsx";
+//==============// Admin imports //==============//
+import AdminDashboard from "./Admin/Admin";
+import AdminRoute from "./Admin/AdminRoute";
+import AdminSettings from "./Admin/AdminSettings.jsx";
+import AdminNavigationDrawer from "./Admin/AdminNavigationDrawer";
+import AdminMembers from "./Admin/AdminMembers";
+import AdminCourses from "./Admin/AdminCourses";
+import AdminAssessments from "./Admin/AdminAssessments";
+import AdminLive from "./Admin/AdminLive";
+//==============// Member imports //==============//
 import MemberDashboard from "./Members/MainInter.jsx";
-import OnlineCompiler from "./Members/Compiler.jsx";
-import Settings from "./System/Settings.jsx";
-import MathSolver from "./Members/MathModule.jsx";
 import CourseViewer from "./Members/CourseViewer.jsx";
-import NavigationDrawer from "./System/MemberNavigation.jsx";
 import CoursePageDisplay from "./Members/CoursesPage.jsx";
 import AssessmentDisplay from "./Members/past_papers.jsx";
+import MemberSettings from "./Members/MemberSettings.jsx";
+//=============// Viewer Routes //==============//
+import ViewerDashboard from "./Viewers/MainInter.jsx";
+//============// Tests //====================//
+import FirebaseRulesTester from './Tests/FirebaseRulesTester.jsx';
+import OnlineCompiler from "./Members/Compiler.jsx";
+import MathSolvers from "./Math/MathSolver.jsx";
+//===========// System utils //==============//
+import NavigationDrawer from "./System/MemberNavigation.jsx";
 import Loading from "./components/loading.jsx";
+//===========// pages //===============//
+import HomePage from "./Home";
 
 const App = () => {
   // Helper component to wrap member routes with NavigationDrawer
@@ -26,7 +41,16 @@ const App = () => {
       </NavigationDrawer>
     </AuthRoute>
   );
-
+  
+  // Helper component to wrap admin routes with AdminNavigationDrawer
+  const AdminRouteWrapper = ({ children }) => (
+    <AdminRoute>
+      <AdminNavigationDrawer>
+        {children}
+      </AdminNavigationDrawer>
+    </AdminRoute>
+  );
+  
   return (
     <BrowserRouter>
       <Routes>
@@ -35,8 +59,8 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/viewer" element={<ViewerDashboard />} />
-	<Route path="/loading" element={<Loading />} />
-        
+        <Route path="/loading" element={<Loading />} />
+        <Route path="/test" element={<FirebaseRulesTester />}/>
         
         {/* Protected member routes with NavigationDrawer */}
         <Route
@@ -63,7 +87,6 @@ const App = () => {
             </MemberRoute>
           }
         />
-
         <Route
           path="/course/:courseId"
           element={
@@ -72,7 +95,6 @@ const App = () => {
             </MemberRoute>
           }
         />
-
         <Route
           path="/compiler"
           element={
@@ -85,7 +107,7 @@ const App = () => {
           path="/settings"
           element={
             <MemberRoute>
-              <Settings />
+              <MemberSettings />
             </MemberRoute>
           }
         />
@@ -93,18 +115,58 @@ const App = () => {
           path="/math-solver"
           element={
             <MemberRoute>
-              <MathSolver />
+              <MathSolvers />
             </MemberRoute>
           }
         />
-       
-        {/* Protected admin routes */}
+        
+        {/* Protected admin routes with AdminNavigationDrawer */}
         <Route
           path="/admin"
           element={
-            <AdminRoute>
+            <AdminRouteWrapper>
               <AdminDashboard />
-            </AdminRoute>
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/members"
+          element={
+            <AdminRouteWrapper>
+              <AdminMembers />
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/courses"
+          element={
+            <AdminRouteWrapper>
+              <AdminCourses />
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/assessments"
+          element={
+            <AdminRouteWrapper>
+              <AdminAssessments />
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/live"
+          element={
+            <AdminRouteWrapper>
+              <AdminLive />
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/adminSettings"
+          element={
+            <AdminRouteWrapper>
+              <AdminSettings />
+            </AdminRouteWrapper>
           }
         />
         

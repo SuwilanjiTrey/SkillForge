@@ -1,0 +1,139 @@
+/* MathSolvers.css - Main styles for the Math Solvers application */
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+.math-solvers-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header styles */
+.math-solvers-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.math-solvers-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.math-solvers-header p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Navigation styles */
+.solver-navigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.nav-button {
+  flex: 1;
+  padding: 15px 20px;
+  background: white;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+}
+
+.nav-button:hover {
+  background-color: #f5f7fa;
+}
+
+.nav-button.active {
+  background-color: #f0f4f8;
+  border-bottom-color: #2575fc;
+  color: #2575fc;
+}
+
+/* Content styles */
+.solver-content {
+  flex: 1;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+/* Footer styles */
+.math-solvers-footer {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .math-solvers-header h1 {
+    font-size: 2rem;
+  }
+  
+  .math-solvers-header p {
+    font-size: 1rem;
+  }
+  
+  .nav-button {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+  
+  .solver-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .math-solvers-container {
+    padding: 10px;
+  }
+  
+  .math-solvers-header {
+    padding: 15px;
+  }
+  
+  .math-solvers-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .nav-button {
+    padding: 10px;
+    font-size: 0.8rem;
+  }
+  
+  .solver-content {
+    padding: 15px;
+  }
+}

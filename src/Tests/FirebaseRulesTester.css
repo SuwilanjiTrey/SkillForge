@@ -1,0 +1,165 @@
+.firebase-rules-tester {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #333;
+}
+
+h1 {
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+h2 {
+  color: #3498db;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin-top: 30px;
+}
+
+.config-section, .user-selection, .test-controls, .results-section, .rules-summary {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.config-form input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.user-buttons {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.user-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.user-button:hover {
+  background-color: #d5dbdb;
+}
+
+.user-button.active {
+  background-color: #3498db;
+  color: white;
+}
+
+.test-controls {
+  display: flex;
+  gap: 15px;
+}
+
+.run-tests-button, .clear-results-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.run-tests-button {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.run-tests-button:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+.run-tests-button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.clear-results-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.clear-results-button:hover {
+  background-color: #c0392b;
+}
+
+.results-table {
+  margin-top: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.table-header, .table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 2fr;
+  gap: 10px;
+  padding: 12px;
+  text-align: left;
+}
+
+.table-header {
+  background-color: #3498db;
+  color: white;
+  font-weight: bold;
+}
+
+.table-row {
+  border-bottom: 1px solid #eee;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-row.success {
+  background-color: #d4edda;
+}
+
+.table-row.failure {
+  background-color: #f8d7da;
+}
+
+.rules-summary ul {
+  padding-left: 20px;
+}
+
+.rules-summary li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .table-header, .table-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  
+  .user-buttons, .test-controls {
+    flex-direction: column;
+  }
+  
+  .config-form, .user-buttons, .test-controls {
+    width: 100%;
+  }
+}
