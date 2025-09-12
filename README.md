@@ -1,87 +1,250 @@
+# Skillforge — Student Learning Application
 
-🚀 Skillforge — Student Learning Application
+**Learning Management System (LMS)**
+
+A lightweight, modular LMS rebuilt from a previous prototype using an iterative & incremental approach. Skillforge focuses on practical teaching workflows: authentication & authorization, responsive UI, clear role abstraction (student, tutor, admin), course/tutorial management, integrated virtual tutorials (Google Meet), and useful academic resources.
+
+---
+
+## ✨ Key Features
+
+### 📚 Accessible Tutorials
+
+* Students can explore tutorials organized by topic to reinforce Computer Science concepts outside lecture hours.
+* Tutorials can be scheduled, described, and linked to live sessions.
+
+### 💻 Coding Practice Environment
+
+* Interactive coding practice area for sharpening programming skills.
+* In-progress: auto-grading and immediate feedback for code submissions (planned feature).
+
+### 🌐 Virtual Tutorial Sessions (Google Meet)
+
+* Tutors can provision Google Meet links when creating tutorials.
+* Students join via a secure Join button (opens Meet in a new tab for compatibility and security).
+
+
+### 🗂️ Academic Resources Access
+
+Centralized access to useful study materials, including:
+
+* Past exam papers
+* Study guides
+* Online compilers and math solvers
+* Lecture supplements and notes
+
+### 🔐 User Authentication
+
+* Secure login and registration using **Firebase Authentication** (Email/Password and optional Google Sign-In).
+* Role-based access: `student`, `tutor`, `admin` (enforced via Firebase custom claims and Firestore security rules).
+
+### 📈 Basic Analytics & Attendance
+
+* Attendance events are logged to Firestore for later analytics (attendance counts, engagement tracking).
+
+### 🛠️ Built With
+
+* **Frontend:** React.js, Vanilla CSS
+* **Backend / Serverless:** Firebase Authentication, Firestore
+* **Hosting:** Firebase Hosting (localhost for development)
+* **Synchronous Meetings:** Google Meet 
+
+---
+
+## 🌐 Live Demo
+
+*to be updated*
+
+---
+
+## ⚙️ Quick Start (Development)
+
+Prerequisites: Node.js (18+ recommended), npm or yarn, Firebase CLI.
+
+```bash
+# Clone the repo
+git clone <repo-url>
+cd skillforge
+
+# Install deps
+npm install
+
+
+
+# Run the frontend locally
+
+npm start
+
+
+```
+
+
+
+---
+
+## ⚙️ Environment & Configuration
+
+Create `.env.local` in the client and set these (example keys):
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
 
 
 
 
-✨ Key Features
-📚 Accessible Tutorials
 
-    Students can explore tutorials organized by topic to reinforce their understanding of Computer Science concepts outside lecture hours.
+---
 
-💻 Coding Practice Environment
+## 🔧 Firebase Setup (Summary)
 
-    Interactive coding practice area for sharpening programming skills.
+1. Create a Firebase project.
+2. Enable Authentication (Email/Password; enable Google provider if desired).
+3. Create Firestore (Native mode).
+4. Enable Cloud Functions and deploy service credentials for Google Calendar API usage if you want auto-provisioning of Meet links.
+5. Optional: Configure Firebase Hosting for the client build.
 
-    Immediate feedback mechanisms (planned) to enhance the learning-by-doing approach.
+### Recommended Firestore Collections
 
-🌐 Virtual Tutorial Sessions
+* `users/{userId}` — `{ displayName, email, role }`
+* `tutorials/{tutorialId}` — `{ title, description, startTime, endTime, meetLink, hostId, visibility }`
 
-    Overcomes limited physical classroom space.
 
-    Integrated with Google Meet for live online tutorial sessions.
+### Example Firestore Rules
 
-🗂️ Academic Resources Access
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /tutorials/{tutorialId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth.token.role in ['tutor','admin'];
+      allow update, delete: if request.auth.token.role in ['tutor','admin'] && request.auth.uid == resource.data.hostId;
+    }
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+  }
+}
+```
 
-    Centralized access to:
+---
 
-        Past exam papers
+## 🔔 Google Meet Provisioning (future enhancements)
 
-        Study guides
+Skillforge supports two provisioning models for Meet links:
 
-        Lecture supplements
+1. **OAuth per tutor:** Tutors authorize the app to create events in their calendar (requires implementing OAuth flows).
+2. **Service account with domain delegation (Google Workspace):** For institutional deployments where domain-wide delegation is possible.
 
-🔐 User Authentication
+**Flow (high-level):**
 
-    Secure login and registration through Firebase Authentication.
+* Tutor requests auto-provision when creating a tutorial → Client calls a secure Cloud Function → Function calls Google Calendar API with `conferenceData.createRequest` → Calendar API returns a Meet join URL → Function stores meet link in `tutorials/{id}`.
 
-🛠️ Built With
+**Note:** Embedding Google Meet inside an iframe is not reliable due to security policies; the Join button opens the Meet link in a new tab/window.
 
-    Frontend: React.js (JavaScript, HTML, CSS)
+---
 
-    Backend: Firebase Functions / Node.js
+## 🔒 Security & Access Control
 
-    Database: Firebase Firestore
+* Assign roles via Firebase custom claims: `admin.auth().setCustomUserClaims(uid, { role: 'tutor' })` (admin-only).
+* Enforce role checks in Firestore rules and in server-side Cloud Functions.
+* Keep all API keys and private keys out of client bundles and source control.
 
-    Hosting: Firebase Hosting
+---
 
-    Authentication: Firebase Authentication
+## 🧪 SQA & Testing Strategy
 
-    Real-Time Communication: Google Meet (current), with planned future LiveKit integration.
+* **Unit tests:** Jest + React Testing Library for React components.
+* **Integration tests:** Use Firebase emulators to test Cloud Functions and Firestore interactions locally.
+* **Manual usability tests:** Conduct small user trials each iteration and collect feedback.
+* **CI:** GitHub Actions to run linting and tests on PRs.
 
-📈 Future Improvements
+**Test focus areas:** authentication flows, tutorial creation/provisioning, role-based access, and join flow UX.
 
-    Auto-grading system for code submissions.
+---
 
-    Mobile application versions (Android/iOS).
+## 🧭 Workflows
 
-    Gamification (badges, leaderboards).
+### Tutor / Admin
 
-    Student discussion forums.
+* Create Tutorial: fill metadata, choose auto-provision (Google Meet) or paste manual link.
+* Manage Tutorials: edit schedule, cancel (optionally trigger calendar event removal).
 
-    Progress analytics and reporting dashboard.
+### Student
 
-🌐 Live Demo
+* Browse tutorials, register/enroll (if required), and click `Join` to open Google Meet.
+* Access academic resources from the dashboard.
 
-🔗 Visit Skillforge Here
-🤝 Contributing
+### System Admin / DevOps
 
-Contributions are welcome!
+* Manage service account or OAuth client IDs, rotate keys, and monitor Firebase usage.
 
-    Fork this repository
+---
 
-    Create your feature branch (git checkout -b feature/AmazingFeature)
+## 🛠️ Development Guidelines
 
-    Commit your changes (git commit -m 'Add some AmazingFeature')
+* Branching: `main`, `dev`, `feature/*`, `hotfix/*`.
+* Code style: ESLint + Prettier; follow React component best practices.
+* Commits: Use conventional commit messages (e.g., `feat: add tutorial form`).
+* PRs: Require at least one reviewer and passing CI checks.
 
-    Push to the branch (git push origin feature/AmazingFeature)
+---
 
-    Open a Pull Request
+## Roadmap / Future Improvements
 
-📝 License
+* Auto-grading and immediate feedback for code exercises.
+* Native mobile apps (Android/iOS) or responsive PWA.
+* Gamification (badges, leaderboards).
+* In-app chat/Q\&A synchronized with tutorials.
+* Self-hosted interactive sessions (LiveKit/Jitsi) for a fully embedded experience.
+* Analytics dashboard for tutors and admins (engagement, attendance).
 
-This project is licensed under the MIT License.
-👨‍💻 Author
+---
+
+## ❓ Troubleshooting & FAQs
+
+**Q: Why does `Join` open a new tab?**
+A: Google Meet embedding is restricted. Opening a new tab ensures compatibility and avoids security issues.
+
+**Q: Meet link not provisioned?**
+A: Check Cloud Function logs for Calendar API errors (auth/quota). Ensure service account/OAuth credentials are correctly configured.
+
+**Q: How to assign a tutor role?**
+A: Use an admin-only Cloud Function or Firebase Admin SDK to set custom claims for the user.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome. Steps:
+
+1. Fork the repo
+2. Create a feature branch: `git checkout -b feature/YourFeature`
+3. Commit changes: `git commit -m "feat: describe your change"`
+4. Push and open a PR
+
+Please run tests and lint locally before opening a PR.
+
+---
+
+## 📝 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 👨‍💻 Author
 
 Suwilanji Trey Chellah
 University of Zambia | Department of Computing and Informatics
+
+---
+
+*README updated — I merged your original content and broadened setup, security, and development sections. Want me to push this as `README.md` to the repo or generate `CONTRIBUTING.md` and `CHANGELOG.md` next?*
