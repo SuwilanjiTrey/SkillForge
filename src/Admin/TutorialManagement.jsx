@@ -17,7 +17,7 @@ const TutorialManagement = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    videoId: '',
+    meetLink: '', // Changed from videoId to meetLink
     hostName: '',
     hostId: '',
     courseId: '',
@@ -108,7 +108,7 @@ const TutorialManagement = () => {
     setFormData({
       title: tutorial.title,
       description: tutorial.description,
-      videoId: tutorial.videoId,
+      meetLink: tutorial.meetLink, // Changed from videoId to meetLink
       hostName: tutorial.hostName,
       hostId: tutorial.hostId,
       courseId: tutorial.courseId,
@@ -137,7 +137,7 @@ const TutorialManagement = () => {
     setFormData({
       title: '',
       description: '',
-      videoId: '',
+      meetLink: '', // Changed from videoId to meetLink
       hostName: user?.displayName || '',
       hostId: user?.uid || '',
       courseId: '',
@@ -209,18 +209,18 @@ const TutorialManagement = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="videoId">YouTube Video ID</label>
+              <label htmlFor="meetLink">Google Meet Link</label>
               <input
-                type="text"
-                id="videoId"
-                name="videoId"
-                value={formData.videoId}
+                type="url"
+                id="meetLink"
+                name="meetLink"
+                value={formData.meetLink}
                 onChange={handleInputChange}
-                placeholder="e.g., dQw4w9WgXcQ"
+                placeholder="https://meet.google.com/xxx-xxxx-xxx"
                 required
               />
               <small className="form-help-text">
-                This is the ID from YouTube URL (e.g., https://www.youtube.com/watch?v=<strong>dQw4w9WgXcQ</strong>)
+                Paste the full Google Meet URL here
               </small>
             </div>
             
@@ -386,7 +386,7 @@ const TutorialManagement = () => {
                       className="btn-end-live"
                       onClick={() => updateStatus(tutorial.id, 'completed')}
                     >
-                      End Stream
+                      End Session
                     </button>
                   )}
                 </div>

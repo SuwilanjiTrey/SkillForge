@@ -1,4 +1,4 @@
-// src/components/student/TutorialPage.jsx
+// src/Members/TutorialPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../AnA/firebase';
@@ -60,6 +60,11 @@ const TutorialPage = () => {
     navigate('/tutorial');
   };
 
+  const handleJoinMeeting = (meetLink) => {
+    // Open the Google Meet link in a new tab
+    window.open(meetLink, '_blank');
+  };
+
   if (loading) return <div className="loading-spinner">Loading tutorials...</div>;
   if (error) return <div className="error-message">{error}</div>;
 
@@ -112,8 +117,14 @@ const TutorialPage = () => {
                   </div>
                 </div>
                 <div className="tutorial-card-footer">
-                  <button className="btn-view-tutorial">
-                    {tutorial.status === 'live' ? 'Join Now' : 'View Details'}
+                  <button 
+                    className={`btn-join-meeting ${tutorial.status === 'live' ? 'btn-live' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent card click
+                      handleJoinMeeting(tutorial.meetLink);
+                    }}
+                  >
+                    {tutorial.status === 'live' ? 'Join Live Session' : 'Join Meeting'}
                   </button>
                 </div>
               </div>
@@ -148,38 +159,39 @@ const TutorialPage = () => {
         </div>
       </div>
 
-      <div className="video-container">
-        <div className="video-wrapper">
-          <iframe
-            className="video-iframe"
-            src={`https://www.youtube.com/embed/${tutorial.videoId}?autoplay=1`}
-            title={tutorial.title}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          ></iframe>
+      <div className="meeting-container">
+        <div className="meeting-info">
+          <div className="info-section">
+            <div className="info-card">
+              <h3>Course</h3>
+              <p>{tutorial.courseName}</p>
+            </div>
+            <div className="info-card">
+              <h3>Target Audience</h3>
+              <p>{tutorial.targetAudience}</p>
+            </div>
+            <div className="info-card">
+              <h3>Duration</h3>
+              <p>{tutorial.duration || 'TBD'}</p>
+            </div>
+          </div>
+          
+          <div className="description-section">
+            <h2>About This Tutorial</h2>
+            <p>{tutorial.description}</p>
+          </div>
         </div>
-      </div>
-
-      <div className="tutorial-details">
-        <div className="description-section">
-          <h2>About This Tutorial</h2>
-          <p>{tutorial.description}</p>
-        </div>
-
-        <div className="info-section">
-          <div className="info-card">
-            <h3>Course</h3>
-            <p>{tutorial.courseName}</p>
-          </div>
-          <div className="info-card">
-            <h3>Target Audience</h3>
-            <p>{tutorial.targetAudience}</p>
-          </div>
-          <div className="info-card">
-            <h3>Duration</h3>
-            <p>{tutorial.duration || 'TBD'}</p>
-          </div>
+        
+        <div className="meeting-action">
+          <button 
+            className={`btn-join-meeting-large ${tutorial.status === 'live' ? 'btn-live' : ''}`}
+            onClick={() => handleJoinMeeting(tutorial.meetLink)}
+          >
+            {tutorial.status === 'live' ? 'Join Live Session Now' : 'Join Meeting'}
+          </button>
+          <p className="meeting-note">
+            Clicking this button will open the Google Meet session in a new tab
+          </p>
         </div>
       </div>
 

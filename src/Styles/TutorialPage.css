@@ -201,6 +201,102 @@
   border-color: #adb5bd;
 }
 
+
+
+/* src/components/student/TutorialPage.css - Additions */
+
+.meeting-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  margin-bottom: 30px;
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8ecf0;
+}
+
+.meeting-info {
+  flex: 2;
+}
+
+.meeting-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.btn-join-meeting {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-join-meeting:hover {
+  background: linear-gradient(135deg, #2980b9, #1f5f8b);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+}
+
+.btn-join-meeting-large {
+  width: 100%;
+  max-width: 300px;
+  padding: 15px 25px;
+  font-size: 16px;
+}
+
+.btn-live {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  animation: pulse 2s infinite;
+}
+
+.btn-live:hover {
+  background: linear-gradient(135deg, #ee5a52, #e74c3c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+  }
+}
+
+.meeting-note {
+  margin-top: 15px;
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
+}
+
+@media (min-width: 768px) {
+  .meeting-container {
+    flex-direction: row;
+  }
+}
+
 /* Responsive Design */
 
 /* Responsive Design */
