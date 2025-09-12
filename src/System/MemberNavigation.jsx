@@ -11,7 +11,8 @@ import {
   Settings,
   Menu,
   X,
-  LogOut
+  LogOut,
+  Video
 } from "lucide-react";
 import "../Styles/nav.css";
 
@@ -64,6 +65,10 @@ const NavigationDrawer = ({ children }) => {
             <Link to="/math-solver" className="nav-item">
               <Calculator size={20} />
               <span>Math Solver</span>
+            </Link>
+            <Link to="/tuitions" className="nav-item">
+              <Video size={20} />
+              <span>Online Tutorials</span>
             </Link>
             <Link to="/settings" className="nav-item">
               <Settings size={20} />

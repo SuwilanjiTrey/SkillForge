@@ -13,13 +13,14 @@ import AdminNavigationDrawer from "./Admin/AdminNavigationDrawer";
 import AdminMembers from "./Admin/AdminMembers";
 import AdminCourses from "./Admin/AdminCourses";
 import AdminAssessments from "./Admin/AdminAssessments";
-import AdminLive from "./Admin/AdminLive";
+import TutorialManagement from "./Admin/TutorialManagement.jsx";
 //==============// Member imports //==============//
 import MemberDashboard from "./Members/MainInter.jsx";
 import CourseViewer from "./Members/CourseViewer.jsx";
 import CoursePageDisplay from "./Members/CoursesPage.jsx";
 import AssessmentDisplay from "./Members/past_papers.jsx";
 import MemberSettings from "./Members/MemberSettings.jsx";
+import TutorialPage from "./Members/TutorialPage.jsx";
 //=============// Viewer Routes //==============//
 import ViewerDashboard from "./Viewers/MainInter.jsx";
 //============// Tests //====================//
@@ -103,6 +104,16 @@ const App = () => {
             </MemberRoute>
           }
         />
+        
+        <Route
+          path="/tuitions"
+          element={
+            <MemberRoute>
+              <TutorialPage />
+            </MemberRoute>
+          }
+        />
+        
         <Route
           path="/settings"
           element={
@@ -157,7 +168,7 @@ const App = () => {
           path="/admin/live"
           element={
             <AdminRouteWrapper>
-              <AdminLive />
+              <TutorialManagement />
             </AdminRouteWrapper>
           }
         />

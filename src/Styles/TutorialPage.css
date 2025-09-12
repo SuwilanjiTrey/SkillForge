@@ -1,0 +1,225 @@
+/* src/components/student/TutorialPage.css - Additions */
+
+.tutorials-landing-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Arial', sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.tutorials-landing-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tutorials-landing-header h1 {
+  font-size: 2.5rem;
+  margin: 0 0 15px 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tutorials-landing-header p {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.no-tutorials-container {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8ecf0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.no-tutorials-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.no-tutorials-container h2 {
+  color: #333;
+  font-size: 1.8rem;
+  margin: 0 0 15px 0;
+  font-weight: 600;
+}
+
+.no-tutorials-container p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.tutorials-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+}
+
+.tutorial-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #e8ecf0;
+  position: relative;
+  cursor: pointer;
+}
+
+.tutorial-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+
+.tutorial-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.tutorial-card:hover::before {
+  transform: scaleX(1);
+}
+
+.tutorial-card-header {
+  padding: 15px;
+  border-bottom: 1px solid #f0f2f5;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.tutorial-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  padding-right: 100px;
+}
+
+.tutorial-card-body {
+  padding: 15px;
+}
+
+.tutorial-description {
+  margin: 0 0 15px 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+.tutorial-meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.meta-item {
+  display: flex;
+  font-size: 14px;
+}
+
+.meta-label {
+  font-weight: 600;
+  color: #667eea;
+  margin-right: 8px;
+  min-width: 80px;
+}
+
+.meta-value {
+  color: #333;
+}
+
+.tutorial-card-footer {
+  padding: 0 15px 15px 15px;
+}
+
+.btn-view-tutorial {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-view-tutorial:hover {
+  background: linear-gradient(135deg, #2980b9, #1f5f8b);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+}
+
+.tutorial-navigation {
+  margin-bottom: 20px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  background: #f8f9fa;
+  color: #333;
+  border: 1px solid #e1e5e9;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Responsive Design */
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .tutorial-details {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tutorial-header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .tutorial-meta {
+    font-size: 1rem;
+  }
+  
+  .info-section {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
