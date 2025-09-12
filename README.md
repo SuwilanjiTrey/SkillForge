@@ -22,7 +22,7 @@ A lightweight, modular LMS rebuilt from a previous prototype using an iterative 
 
 * Tutors can provision Google Meet links when creating tutorials.
 * Students join via a secure Join button (opens Meet in a new tab for compatibility and security).
-* Provisioning is automated using the Google Calendar API via secure Cloud Functions (optional OAuth/service-account methods supported).
+
 
 ### 🗂️ Academic Resources Access
 
@@ -44,43 +44,41 @@ Centralized access to useful study materials, including:
 
 ### 🛠️ Built With
 
-* **Frontend:** React.js, Tailwind CSS
-* **Backend / Serverless:** Firebase Authentication, Firestore, Firebase Cloud Functions (Node.js)
-* **Hosting:** Firebase Hosting (or any static host)
-* **Synchronous Meetings:** Google Meet (provisioned via Google Calendar API)
+* **Frontend:** React.js, Vanilla CSS
+* **Backend / Serverless:** Firebase Authentication, Firestore
+* **Hosting:** Firebase Hosting (localhost for development)
+* **Synchronous Meetings:** Google Meet 
 
 ---
 
 ## 🌐 Live Demo
 
-*If you have a deployed instance, add the live demo URL here.*
+*to be updated*
 
 ---
 
 ## ⚙️ Quick Start (Development)
 
-Prerequisites: Node.js (18+ recommended), npm or yarn, Firebase CLI, and a Google Cloud project for Meet provisioning (optional).
+Prerequisites: Node.js (18+ recommended), npm or yarn, Firebase CLI.
 
 ```bash
 # Clone the repo
 git clone <repo-url>
 cd skillforge
 
-# Install client deps
-cd client && npm install
+# Install deps
+npm install
 
-# Install functions deps
-cd ../functions && npm install
+
 
 # Run the frontend locally
-cd ../client
-npm run dev
 
-# Run Firebase emulators (recommended)
-firebase emulators:start --only auth,firestore,functions,hosting
+npm start
+
+
 ```
 
-> Use the Firebase Emulator Suite to test Firestore rules and Cloud Functions without consuming production quota.
+
 
 ---
 
@@ -97,16 +95,9 @@ NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 NEXT_PUBLIC_FIREBASE_APP_ID=...
 ```
 
-For Cloud Functions, configure Google credentials securely using Firebase Functions config or Secret Manager:
 
-```bash
-firebase functions:config:set google.service_account_email="svc@project.iam.gserviceaccount.com" google.private_key="-----BEGIN PRIVATE KEY-----
-...
------END PRIVATE KEY-----
-"
-```
 
-**Do not commit secrets to source control.**
+
 
 ---
 
@@ -122,7 +113,7 @@ firebase functions:config:set google.service_account_email="svc@project.iam.gser
 
 * `users/{userId}` — `{ displayName, email, role }`
 * `tutorials/{tutorialId}` — `{ title, description, startTime, endTime, meetLink, hostId, visibility }`
-* `attendance/{tutorialId}/{userId}` — `{ joinedAt, leftAt }`
+
 
 ### Example Firestore Rules
 
@@ -145,7 +136,7 @@ service cloud.firestore {
 
 ---
 
-## 🔔 Google Meet Provisioning (Calendar API)
+## 🔔 Google Meet Provisioning (future enhancements)
 
 Skillforge supports two provisioning models for Meet links:
 
@@ -206,7 +197,7 @@ Skillforge supports two provisioning models for Meet links:
 
 ---
 
-## 🚀 Roadmap / Future Improvements
+## Roadmap / Future Improvements
 
 * Auto-grading and immediate feedback for code exercises.
 * Native mobile apps (Android/iOS) or responsive PWA.
