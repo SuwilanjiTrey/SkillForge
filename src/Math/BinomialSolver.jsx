@@ -1,3 +1,4 @@
+// src/components/Math/BinomialSolver.jsx
 import React, { useState } from 'react';
 import './styles/BinomialSolver.css';
 
@@ -6,6 +7,27 @@ const BinomialSolver = () => {
   const [k, setK] = useState('');
   const [binomialType, setBinomialType] = useState('coefficient');
   const [result, setResult] = useState('');
+  const [steps, setSteps] = useState([]);
+  const [showSteps, setShowSteps] = useState(false);
+  
+  const factorial = (num) => {
+    if (num === 0 || num === 1) return 1;
+    let result = 1;
+    for (let i = 2; i <= num; i++) {
+      result *= i;
+    }
+    return result;
+  };
+  
+  const formatFactorialSteps = (num) => {
+    if (num === 0 || num === 1) return [`${num}! = 1`];
+    
+    let steps = [`${num}! = 1`];
+    for (let i = 2; i <= num; i++) {
+      steps.push(`${i}! = ${i} × ${(i-1)}! = ${factorial(i)}`);
+    }
+    return steps;
+  };
   
   const calculateBinomialCoefficient = () => {
     const nVal = parseInt(n);
@@ -13,20 +35,54 @@ const BinomialSolver = () => {
     
     if (isNaN(nVal) || isNaN(kVal) || nVal < 0 || kVal < 0 || kVal > nVal) {
       setResult('Please enter valid non-negative integers where k ≤ n');
+      setSteps([]);
       return;
     }
     
-    // Calculate binomial coefficient: C(n, k) = n! / (k! * (n-k)!)
-    const factorial = (num) => {
-      if (num === 0 || num === 1) return 1;
-      let result = 1;
-      for (let i = 2; i <= num; i++) {
-        result *= i;
-      }
-      return result;
-    };
+    // Reset steps
+    const calculationSteps = [];
     
-    const coefficient = factorial(nVal) / (factorial(kVal) * factorial(nVal - kVal));
+    // Step 1: Formula
+    calculationSteps.push({
+      title: 'Formula',
+      content: `C(${nVal}, ${kVal}) = ${nVal}! / (${kVal}! × (${nVal}-${kVal})!) = ${nVal}! / (${kVal}! × ${nVal-kVal}!)`
+    });
+    
+    // Step 2: Calculate factorials
+    const nFact = factorial(nVal);
+    const kFact = factorial(kVal);
+    const nkFact = factorial(nVal - kVal);
+    
+    calculationSteps.push({
+      title: 'Calculate Factorials',
+      content: [
+        ...formatFactorialSteps(nVal),
+        ...formatFactorialSteps(kVal),
+        ...formatFactorialSteps(nVal - kVal)
+      ]
+    });
+    
+    // Step 3: Substitute values
+    calculationSteps.push({
+      title: 'Substitute Values',
+      content: `C(${nVal}, ${kVal}) = ${nFact} / (${kFact} × ${nkFact})`
+    });
+    
+    // Step 4: Calculate denominator
+    const denominator = kFact * nkFact;
+    calculationSteps.push({
+      title: 'Calculate Denominator',
+      content: `${kFact} × ${nkFact} = ${denominator}`
+    });
+    
+    // Step 5: Final result
+    const coefficient = nFact / denominator;
+    calculationSteps.push({
+      title: 'Final Result',
+      content: `C(${nVal}, ${kVal}) = ${nFact} / ${denominator} = ${coefficient}`
+    });
+    
+    setSteps(calculationSteps);
     setResult(`C(${nVal}, ${kVal}) = ${coefficient}`);
   };
   
@@ -35,11 +91,27 @@ const BinomialSolver = () => {
     
     if (isNaN(nVal) || nVal < 0) {
       setResult('Please enter a valid non-negative integer');
+      setSteps([]);
       return;
     }
     
-    // Generate binomial expansion of (a + b)^n
+    // Reset steps
+    const calculationSteps = [];
+    
+    // Step 1: Formula
+    calculationSteps.push({
+      title: 'Formula',
+      content: `(a + b)^${nVal} = Σ [k=0 to ${nVal}] C(${nVal},k) × a^(${nVal}-k) × b^k`
+    });
+    
+    // Step 2: Generate each term
+    let terms = [];
     let expansion = '';
+    
+    calculationSteps.push({
+      title: 'Calculate Each Term',
+      content: []
+    });
     
     for (let k = 0; k <= nVal; k++) {
       // Calculate binomial coefficient for this term
@@ -65,14 +137,27 @@ const BinomialSolver = () => {
       
       if (!term) term = '1';
       
-      expansion += term;
-      if (k < nVal) expansion += ' + ';
+      terms.push(term);
+      
+      // Add step for this term
+      calculationSteps[1].content.push(
+        `Term ${k+1}: C(${nVal},${k}) × a^${nVal-k} × b^${k} = ${coeff} × a^${nVal-k} × b^${k} = ${term}`
+      );
     }
     
+    // Step 3: Combine terms
+    expansion = terms.join(' + ');
+    calculationSteps.push({
+      title: 'Combine All Terms',
+      content: `(a + b)^${nVal} = ${expansion}`
+    });
+    
+    setSteps(calculationSteps);
     setResult(`(a + b)^${nVal} = ${expansion}`);
   };
   
   const handleSolve = () => {
+    setShowSteps(true);
     if (binomialType === 'coefficient') {
       calculateBinomialCoefficient();
     } else {
@@ -80,6 +165,10 @@ const BinomialSolver = () => {
     }
   };
   
+  const toggleSteps = () => {
+    setShowSteps(!showSteps);
+  };
+
   return (
     <div className="binomial-solver">
       <h2>Binomial Solver</h2>
@@ -134,7 +223,38 @@ const BinomialSolver = () => {
         {binomialType === 'coefficient' ? 'Calculate Coefficient' : 'Expand Binomial'}
       </button>
       
-      {result && <div className="result">{result}</div>}
+      {result && (
+        <div className="result-container">
+          <div className="result">{result}</div>
+          <button className="toggle-steps-button" onClick={toggleSteps}>
+            {showSteps ? 'Hide Steps' : 'Show Steps'}
+          </button>
+        </div>
+      )}
+      
+      {showSteps && steps.length > 0 && (
+        <div className="steps-container">
+          <h3>Solution Steps</h3>
+          <div className="steps">
+            {steps.map((step, index) => (
+              <div key={index} className="step">
+                <div className="step-title">{step.title}</div>
+                <div className="step-content">
+                  {Array.isArray(step.content) ? (
+                    <ul>
+                      {step.content.map((item, i) => (
+                        <li key={i}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>{step.content}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

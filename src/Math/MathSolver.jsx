@@ -1,48 +1,93 @@
+// src/components/math/MathSolvers.jsx
 import React, { useState } from 'react';
+import { Calculator, Sigma, TrendingUp, Triangle } from 'lucide-react';
 import './styles/MathSolvers.css';
 import EquationSolver from './EquationSolver';
 import BinomialSolver from './BinomialSolver';
 import CalculusSolver from './CalculusSolver';
+import TrigonometrySolver from './TrigonometrySolver';
 
 const MathSolvers = () => {
   const [activeSolver, setActiveSolver] = useState('equation');
   
+  const solvers = [
+    {
+      id: 'equation',
+      name: 'Equations',
+      icon: <Calculator size={24} />,
+      description: 'Solve linear, quadratic, and polynomial equations'
+    },
+    {
+      id: 'binomial',
+      name: 'Binomials',
+      icon: <Sigma size={24} />,
+      description: 'Calculate binomial coefficients and expansions'
+    },
+    {
+      id: 'calculus',
+      name: 'Calculus',
+      icon: <TrendingUp size={24} />,
+      description: 'Compute derivatives, integrals, and limits'
+    },
+    {
+      id: 'trigonometry',
+      name: 'Trigonometry',
+      icon: <Triangle size={24} />,
+      description: 'Solve trigonometric equations and identities'
+    }
+  ];
+  
   return (
     <div className="math-solvers-container">
-      <header className="math-solvers-header">
-        <h1>Math Solvers</h1>
-        <p>Solve equations, binomials, and calculus problems</p>
-      </header>
+      <div className="math-solvers-header">
+        <div className="header-content">
+          <h1>Math Solvers</h1>
+          <p>Advanced mathematical problem-solving tools for students</p>
+        </div>
+        <div className="header-decoration">
+          <div className="math-symbol">∑</div>
+          <div className="math-symbol">∫</div>
+          <div className="math-symbol">π</div>
+        </div>
+      </div>
       
       <div className="solver-navigation">
-        <button 
-          className={`nav-button ${activeSolver === 'equation' ? 'active' : ''}`}
-          onClick={() => setActiveSolver('equation')}
-        >
-          Equations
-        </button>
-        <button 
-          className={`nav-button ${activeSolver === 'binomial' ? 'active' : ''}`}
-          onClick={() => setActiveSolver('binomial')}
-        >
-          Binomials
-        </button>
-        <button 
-          className={`nav-button ${activeSolver === 'calculus' ? 'active' : ''}`}
-          onClick={() => setActiveSolver('calculus')}
-        >
-          Calculus
-        </button>
+        <div className="nav-container">
+          {solvers.map((solver) => (
+            <button
+              key={solver.id}
+              className={`nav-button ${activeSolver === solver.id ? 'active' : ''}`}
+              onClick={() => setActiveSolver(solver.id)}
+            >
+              <span className="nav-icon">{solver.icon}</span>
+              <span className="nav-text">
+                <span className="nav-title">{solver.name}</span>
+                <span className="nav-description">{solver.description}</span>
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
       
       <div className="solver-content">
-        {activeSolver === 'equation' && <EquationSolver />}
-        {activeSolver === 'binomial' && <BinomialSolver />}
-        {activeSolver === 'calculus' && <CalculusSolver />}
+        <div className="solver-card">
+          {activeSolver === 'equation' && <EquationSolver />}
+          {activeSolver === 'binomial' && <BinomialSolver />}
+          {activeSolver === 'calculus' && <CalculusSolver />}
+          {activeSolver === 'trigonometry' && <TrigonometrySolver />}
+        </div>
       </div>
       
       <footer className="math-solvers-footer">
-        <p>Math Solvers &copy; {new Date().getFullYear()}</p>
+        <div className="footer-content">
+          <p>Math Solvers &copy; {new Date().getFullYear()}</p>
+          <p>Designed for students by educators</p>
+        </div>
+        <div className="footer-decoration">
+          <div className="math-symbol">∞</div>
+          <div className="math-symbol">√</div>
+          <div className="math-symbol">∂</div>
+        </div>
       </footer>
     </div>
   );

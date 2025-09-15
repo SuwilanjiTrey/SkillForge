@@ -1,139 +1,228 @@
-/* MathSolvers.css - Main styles for the Math Solvers application */
-
-/* Base styles */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-  background-color: #f5f7fa;
-  color: #333;
-  line-height: 1.6;
-}
-
+/* src/components/styles/MathSolvers.css */
 .math-solvers-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4eaf5 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Header styles */
 .math-solvers-header {
-  text-align: center;
-  margin-bottom: 30px;
-  padding: 20px;
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+  background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
   color: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.math-solvers-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
-}
-
-.math-solvers-header p {
-  font-size: 1.2rem;
-  opacity: 0.9;
-}
-
-/* Navigation styles */
-.solver-navigation {
+  padding: 2rem 1rem;
   display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-content h1 {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header-content p {
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
+  max-width: 600px;
+}
+
+.header-decoration {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.math-symbol {
+  font-size: 2.5rem;
+  opacity: 0.7;
+  animation: float 3s ease-in-out infinite;
+}
+
+.math-symbol:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.math-symbol:nth-child(3) {
+  animation-delay: 1s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.solver-navigation {
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .nav-button {
   flex: 1;
-  padding: 15px 20px;
-  background: white;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
+  min-width: 200px;
+  max-width: 300px;
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-bottom: 3px solid transparent;
+  text-align: left;
 }
 
 .nav-button:hover {
-  background-color: #f5f7fa;
+  background: #f1f3f5;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
 }
 
 .nav-button.active {
-  background-color: #f0f4f8;
-  border-bottom-color: #2575fc;
-  color: #2575fc;
+  background: linear-gradient(135deg, #3949ab 0%, #5c6bc0 100%);
+  color: white;
+  border-color: #3949ab;
+  box-shadow: 0 6px 15px rgba(57, 73, 171, 0.3);
 }
 
-/* Content styles */
+.nav-icon {
+  font-size: 1.5rem;
+  margin-right: 1rem;
+  color: #3949ab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(57, 73, 171, 0.1);
+  border-radius: 10px;
+}
+
+.nav-button.active .nav-icon {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-text {
+  flex: 1;
+}
+
+.nav-title {
+  display: block;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.nav-description {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  line-height: 1.3;
+}
+
 .solver-content {
   flex: 1;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 30px;
-  margin-bottom: 30px;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
 }
 
-/* Footer styles */
+.solver-card {
+  width: 100%;
+  max-width: 1200px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
 .math-solvers-footer {
-  text-align: center;
-  padding: 20px;
-  color: #666;
+  background: linear-gradient(135deg, #263238 0%, #37474f 100%);
+  color: white;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-content p {
+  margin: 0 0 0.5rem 0;
+}
+
+.footer-content p:last-child {
+  margin-bottom: 0;
+  opacity: 0.8;
   font-size: 0.9rem;
 }
 
-/* Responsive styles */
+.footer-decoration {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-decoration .math-symbol {
+  opacity: 0.5;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .math-solvers-header h1 {
+  .math-solvers-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .header-content h1 {
     font-size: 2rem;
   }
   
-  .math-solvers-header p {
-    font-size: 1rem;
+  .nav-container {
+    flex-direction: column;
   }
   
   .nav-button {
-    padding: 12px 15px;
-    font-size: 0.9rem;
+    max-width: 100%;
   }
   
-  .solver-content {
-    padding: 20px;
+  .math-solvers-footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
   }
 }
 
 @media (max-width: 480px) {
-  .math-solvers-container {
-    padding: 10px;
-  }
-  
-  .math-solvers-header {
-    padding: 15px;
-  }
-  
-  .math-solvers-header h1 {
+  .header-content h1 {
     font-size: 1.8rem;
   }
   
-  .nav-button {
-    padding: 10px;
-    font-size: 0.8rem;
+  .header-decoration {
+    display: none;
   }
   
-  .solver-content {
-    padding: 15px;
+  .footer-decoration {
+    display: none;
   }
 }
