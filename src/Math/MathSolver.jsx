@@ -6,6 +6,7 @@ import EquationSolver from './EquationSolver';
 import BinomialSolver from './BinomialSolver';
 import CalculusSolver from './CalculusSolver';
 import TrigonometrySolver from './TrigonometrySolver';
+import MathChatbot from './Chatbox';
 
 const MathSolvers = () => {
   const [activeSolver, setActiveSolver] = useState('equation');
@@ -89,6 +90,9 @@ const MathSolvers = () => {
           <div className="math-symbol">∂</div>
         </div>
       </footer>
+      
+      {/* Math Assistant Chatbot */}
+      <MathChatbot />
     </div>
   );
 };

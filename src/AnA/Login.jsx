@@ -1,4 +1,3 @@
-// src/AnA/Login.js
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
@@ -43,6 +42,19 @@ const Login = () => {
           localStorage.setItem("userRole", "admin");
           setLoading(false);
           navigate("/admin");
+          return;
+        }
+        
+        // Check if user is a tutor
+        const tutorRef = doc(db, "tutors", user.uid);
+        const tutorSnapshot = await getDoc(tutorRef);
+        
+        if (tutorSnapshot.exists()) {
+          // User is a tutor
+          console.log("User is a tutor");
+          localStorage.setItem("userRole", "tutor");
+          setLoading(false);
+          navigate("/tutor");
           return;
         }
         

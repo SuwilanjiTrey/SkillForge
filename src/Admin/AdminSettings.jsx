@@ -178,14 +178,30 @@ const AdminSettings = () => {
       const userRef = doc(db, 'users', userId);
       batch.update(userRef, { role: newRole });
       
-      // If new role is admin, add to admins collection
+      // Handle role-specific collections
       if (newRole === 'admin') {
+        // Add to admins collection
         const adminRef = doc(db, 'admins', userId);
         batch.set(adminRef, { role: 'admin', createdAt: new Date() });
-      } else if (newRole === 'member') {
-        // If demoting from admin, remove from admins collection
+        
+        // Remove from tutors if exists
+        const tutorRef = doc(db, 'tutors', userId);
+        batch.delete(tutorRef);
+      } else if (newRole === 'tutor') {
+        // Add to tutors collection
+        const tutorRef = doc(db, 'tutors', userId);
+        batch.set(tutorRef, { role: 'tutor', createdAt: new Date() });
+        
+        // Remove from admins if exists
         const adminRef = doc(db, 'admins', userId);
         batch.delete(adminRef);
+      } else {
+        // For member or viewer, remove from both admins and tutors
+        const adminRef = doc(db, 'admins', userId);
+        batch.delete(adminRef);
+        
+        const tutorRef = doc(db, 'tutors', userId);
+        batch.delete(tutorRef);
       }
       
       await batch.commit();
@@ -368,6 +384,7 @@ const AdminSettings = () => {
                     >
                       <option value="viewer">Viewer</option>
                       <option value="member">Member</option>
+                      <option value="tutor">Tutor</option>
                       <option value="admin">Admin</option>
                     </select>
                   </td>

@@ -33,6 +33,37 @@ import Loading from "./components/loading.jsx";
 //===========// pages //===============//
 import HomePage from "./Home";
 
+//======== AI ===========//
+import AIStudy from "./Ai/AIStudy";
+import QuizPlayer from "./Ai/QuizPlayer";
+
+
+
+
+
+//==============// Tutor imports //==============//
+import TutorDashboard from "./Tutors/TutorDashboard";
+import TutorCourses from "./Tutors/TutorCourses";
+import TutorTutorials from "./Tutors/TutorTutorials";
+import TutorAssessments from "./Tutors/TutorAssessments";
+import TutorSettings from "./Tutors/TutorSettings";
+import TutorNavigationDrawer from "./Tutors/TutorNav";
+import TutorRoute from "./Tutors/TutorRoute";
+
+// Helper component to wrap tutor routes with TutorNavigationDrawer
+const TutorRouteWrapper = ({ children }) => (
+  <TutorRoute>
+    <TutorNavigationDrawer>
+      {children}
+    </TutorNavigationDrawer>
+  </TutorRoute>
+);
+
+
+
+
+
+
 const App = () => {
   // Helper component to wrap member routes with NavigationDrawer
   const MemberRoute = ({ children }) => (
@@ -104,6 +135,69 @@ const App = () => {
             </MemberRoute>
           }
         />
+        
+        <Route
+  path="/ai-study"
+  element={
+    <MemberRoute>
+      <AIStudy />
+    </MemberRoute>
+  }
+/>
+<Route
+  path="/quiz/:quizId"
+  element={
+    <MemberRoute>
+      <QuizPlayer />
+    </MemberRoute>
+  }
+/>
+
+
+<Route
+  path="/tutor"
+  element={
+    <TutorRouteWrapper>
+      <TutorDashboard />
+    </TutorRouteWrapper>
+  }
+/>
+<Route
+  path="/tutor/courses"
+  element={
+    <TutorRouteWrapper>
+      <TutorCourses />
+    </TutorRouteWrapper>
+  }
+/>
+<Route
+  path="/tutor/tutorials"
+  element={
+    <TutorRouteWrapper>
+      <TutorTutorials />
+    </TutorRouteWrapper>
+  }
+/>
+<Route
+  path="/tutor/assessments"
+  element={
+    <TutorRouteWrapper>
+      <TutorAssessments />
+    </TutorRouteWrapper>
+  }
+/>
+<Route
+  path="/tutor/settings"
+  element={
+    <TutorRouteWrapper>
+      <TutorSettings />
+    </TutorRouteWrapper>
+  }
+/>
+
+
+
+
         
         <Route
           path="/tuitions"

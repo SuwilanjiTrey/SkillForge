@@ -2,7 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../AnA/firebase';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where } from 'firebase/firestore';
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  Play, 
+  ChevronLeft, 
+  ExternalLink,
+  Video,
+  Mic,
+  MessageSquare,
+  AlertCircle,
+  CheckCircle
+} from 'lucide-react';
 import '../Styles/TutorialPage.css';
 
 const TutorialPage = () => {
@@ -32,9 +45,10 @@ const TutorialPage = () => {
             setError('Tutorial not found');
           }
         } else {
-          // Fetch all tutorials for landing page
+          // Fetch only live tutorials for landing page
           const tutorialsCollection = collection(db, 'liveSessions');
-          const tutorialSnapshot = await getDocs(tutorialsCollection);
+          const q = query(tutorialsCollection, where("status", "==", "live"));
+          const tutorialSnapshot = await getDocs(q);
           const tutorialList = tutorialSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
@@ -75,12 +89,18 @@ const TutorialPage = () => {
         <div className="tutorials-landing-header">
           <h1>Live Tutorials</h1>
           <p>Join live sessions with expert tutors and enhance your learning experience</p>
+          <div className="live-indicator">
+            <div className="live-dot"></div>
+            <span>{tutorials.length} live tutorial{tutorials.length !== 1 ? 's' : ''} available now</span>
+          </div>
         </div>
 
         {tutorials.length === 0 ? (
           <div className="no-tutorials-container">
-            <div className="no-tutorials-icon">📺</div>
-            <h2>No Tutorials Available</h2>
+            <div className="no-tutorials-icon">
+              <Video size={48} />
+            </div>
+            <h2>No Live Tutorials Available</h2>
             <p>There are currently no live tutorials scheduled. Check back later for updates.</p>
           </div>
         ) : (
@@ -92,10 +112,13 @@ const TutorialPage = () => {
                 onClick={() => handleTutorialClick(tutorial.id)}
               >
                 <div className="tutorial-card-header">
+                  <div className="tutorial-status">
+                    <div className="live-indicator-card">
+                      <div className="live-dot"></div>
+                      <span>LIVE NOW</span>
+                    </div>
+                  </div>
                   <h3>{tutorial.title}</h3>
-                  <span className={`tutorial-status ${tutorial.status}`}>
-                    {tutorial.status === 'live' ? 'LIVE NOW' : tutorial.status.toUpperCase()}
-                  </span>
                 </div>
                 <div className="tutorial-card-body">
                   <p className="tutorial-description">{tutorial.description}</p>
@@ -109,22 +132,23 @@ const TutorialPage = () => {
                       <span className="meta-value">{tutorial.courseName}</span>
                     </div>
                     <div className="meta-item">
-                      <span className="meta-label">Scheduled:</span>
+                      <span className="meta-label">Started:</span>
                       <span className="meta-value">
-                        {new Date(tutorial.scheduledDate).toLocaleString()}
+                        {new Date(tutorial.timestamp?.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="tutorial-card-footer">
                   <button 
-                    className={`btn-join-meeting ${tutorial.status === 'live' ? 'btn-live' : ''}`}
+                    className="btn-join-meeting"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent card click
                       handleJoinMeeting(tutorial.meetLink);
                     }}
                   >
-                    {tutorial.status === 'live' ? 'Join Live Session' : 'Join Meeting'}
+                    <Play size={16} />
+                    Join Live Session
                   </button>
                 </div>
               </div>
@@ -142,20 +166,32 @@ const TutorialPage = () => {
     <div className="tutorial-page-container">
       <div className="tutorial-navigation">
         <button className="btn-back" onClick={handleBackToTutorials}>
-          ← Back to All Tutorials
+          <ChevronLeft size={16} />
+          Back to All Tutorials
         </button>
       </div>
 
       <div className="tutorial-header">
-        <h1>{tutorial.title}</h1>
+        <div className="tutorial-status-header">
+          <div className="live-indicator-large">
+            <div className="live-dot"></div>
+            <span>LIVE NOW</span>
+          </div>
+          <h1>{tutorial.title}</h1>
+        </div>
         <div className="tutorial-meta">
-          <span className="tutorial-host">Host: {tutorial.hostName}</span>
-          <span className="tutorial-date">
-            {new Date(tutorial.scheduledDate).toLocaleString()}
-          </span>
-          <span className={`tutorial-status ${tutorial.status}`}>
-            {tutorial.status === 'live' ? 'LIVE NOW' : tutorial.status.toUpperCase()}
-          </span>
+          <div className="meta-item">
+            <Calendar size={16} />
+            <span>Started: {new Date(tutorial.timestamp?.toDate()).toLocaleString()}</span>
+          </div>
+          <div className="meta-item">
+            <Users size={16} />
+            <span>Host: {tutorial.hostName}</span>
+          </div>
+          <div className="meta-item">
+            <Clock size={16} />
+            <span>Duration: {tutorial.duration || 'TBD'}</span>
+          </div>
         </div>
       </div>
 
@@ -171,34 +207,51 @@ const TutorialPage = () => {
               <p>{tutorial.targetAudience}</p>
             </div>
             <div className="info-card">
-              <h3>Duration</h3>
-              <p>{tutorial.duration || 'TBD'}</p>
+              <h3>Prerequisites</h3>
+              <p>{tutorial.prerequisites || 'None'}</p>
             </div>
           </div>
           
           <div className="description-section">
             <h2>About This Tutorial</h2>
             <p>{tutorial.description}</p>
+            
+            {tutorial.topics && tutorial.topics.length > 0 && (
+              <div className="topics-section">
+                <h3>Topics Covered</h3>
+                <ul className="topics-list">
+                  {tutorial.topics.map((topic, index) => (
+                    <li key={index}>{topic}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
         
         <div className="meeting-action">
           <button 
-            className={`btn-join-meeting-large ${tutorial.status === 'live' ? 'btn-live' : ''}`}
+            className="btn-join-meeting-large"
             onClick={() => handleJoinMeeting(tutorial.meetLink)}
           >
-            {tutorial.status === 'live' ? 'Join Live Session Now' : 'Join Meeting'}
+            <Play size={20} />
+            Join Live Session Now
           </button>
-          <p className="meeting-note">
-            Clicking this button will open the Google Meet session in a new tab
-          </p>
+          <div className="meeting-note">
+            <AlertCircle size={16} />
+            <p>Clicking this button will open the Google Meet session in a new tab</p>
+          </div>
         </div>
       </div>
 
       <div className="chat-section">
         <h2>Live Chat</h2>
         <div className="chat-container">
-          <p>Live chat will appear here. This feature is coming soon!</p>
+          <div className="chat-placeholder">
+            <MessageSquare size={48} />
+            <h3>Live Chat Coming Soon</h3>
+            <p>Interactive chat features will be available in future updates</p>
+          </div>
         </div>
       </div>
     </div>

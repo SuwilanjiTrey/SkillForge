@@ -1,6 +1,24 @@
-import React, { useState, useEffect } from 'react';
+// src/components/MemberSettings.jsx
+import React, { useState, useEffect, useRef } from 'react';
 import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
 import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { 
+  User, 
+  Camera, 
+  Lock, 
+  Mail, 
+  Shield, 
+  Bell, 
+  Monitor, 
+  Moon, 
+  Sun,
+  Save,
+  X,
+  AlertTriangle,
+  CheckCircle,
+  Eye,
+  EyeOff
+} from "lucide-react";
 import '../Styles/settings.css';
 
 const MemberSettings = () => {
@@ -9,7 +27,8 @@ const MemberSettings = () => {
     email: '',
     role: '',
     subscriptionStatus: '',
-    subscriptionEnd: null
+    subscriptionEnd: null,
+    profilePicture: ''
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -21,6 +40,13 @@ const MemberSettings = () => {
     displayName: '',
     email: ''
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const fileInputRef = useRef(null);
 
   const auth = getAuth();
   const db = getFirestore();
@@ -41,12 +67,18 @@ const MemberSettings = () => {
             email: user.email,
             role: data.role || 'member',
             subscriptionStatus: data.subscriptionStatus || 'inactive',
-            subscriptionEnd: data.subscriptionEnd ? data.subscriptionEnd.toDate().toLocaleDateString() : null
+            subscriptionEnd: data.subscriptionEnd ? data.subscriptionEnd.toDate().toLocaleDateString() : null,
+            profilePic: data.profilePic || ''
           });
           setUpdatedInfo({
             displayName: data.displayName || '',
             email: user.email
           });
+          
+          // Set profile picture preview if available
+          if (data.profilePic) {
+            setProfilePicturePreview(data.profilePic);
+          }
         }
       } catch (error) {
         setMessage({ text: `Error fetching user data: ${error.message}`, type: 'error' });
@@ -57,6 +89,38 @@ const MemberSettings = () => {
 
     fetchUserData();
   }, [user, db]);
+
+  // Handle profile picture upload
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check file type
+      if (!file.type.match('image.*')) {
+        setMessage({ text: 'Please select an image file', type: 'error' });
+        return;
+      }
+      
+      // Check file size (limit to 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage({ text: 'Image size should be less than 5MB', type: 'error' });
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        setProfilePicturePreview(base64String);
+        // Update the profile picture in the updatedInfo
+        setUpdatedInfo(prev => ({ ...prev, profilePicture: base64String }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Trigger file input click
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
+  };
 
   // Handle password update
   const handlePasswordUpdate = async (e) => {
@@ -96,21 +160,31 @@ const MemberSettings = () => {
     e.preventDefault();
     
     setLoading(true);
+    setIsUploading(true);
     try {
-      // Update in Firestore
-      await updateDoc(doc(db, 'users', user.uid), {
+      // Prepare update data
+      const updateData = {
         displayName: updatedInfo.displayName
-      });
+      };
       
-      // Update in auth
-      if (updatedInfo.email !== user.email) {
+      // Include profile picture if it was changed
+      if (updatedInfo.profilePicture && updatedInfo.profilePicture !== userData.profilePicture) {
+        updateData.profilePicture = updatedInfo.profilePicture;
+      }
+      
+      // Update in Firestore
+      await updateDoc(doc(db, 'users', user.uid), updateData);
+      
+      // Update in auth (display name only)
+      if (updatedInfo.displayName !== userData.displayName) {
         // Note: Email update requires additional verification steps
-        setMessage({ text: 'Email update requires verification. Check your email.', type: 'info' });
+        setMessage({ text: 'Profile updated successfully', type: 'success' });
       }
       
       setUserData({
         ...userData,
-        displayName: updatedInfo.displayName
+        displayName: updatedInfo.displayName,
+        profilePicture: updatedInfo.profilePicture
       });
       
       setEditMode(false);
@@ -119,6 +193,7 @@ const MemberSettings = () => {
       setMessage({ text: `Error updating profile: ${error.message}`, type: 'error' });
     } finally {
       setLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -152,160 +227,300 @@ const MemberSettings = () => {
     }
   };
 
+  // Clear message after 5 seconds
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => {
+        setMessage({ text: '', type: '' });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   return (
     <div className="settings-container">
-      <h1>Member Settings</h1>
+      <div className="settings-header">
+        <h1>Settings</h1>
+        <p>Manage your account settings and preferences</p>
+      </div>
       
       {message.text && (
         <div className={`message ${message.type}`}>
+          {message.type === 'success' ? (
+            <CheckCircle size={20} />
+          ) : (
+            <AlertTriangle size={20} />
+          )}
           {message.text}
         </div>
       )}
       
-      <div className="settings-card">
-        <h2>Account Information</h2>
-        
-        <div className="info-section">
-          <div className="info-item">
-            <span className="info-label">Name:</span>
+      <div className="settings-grid">
+        {/* Profile Card */}
+        <div className="settings-card profile-card">
+          <div className="card-header">
+            <h2>Profile Information</h2>
             {editMode ? (
-              <input
-                type="text"
-                value={updatedInfo.displayName}
-                onChange={(e) => setUpdatedInfo({...updatedInfo, displayName: e.target.value})}
-              />
+              <div className="edit-actions">
+                <button 
+                  className="cancel-btn" 
+                  onClick={() => {
+                    setEditMode(false);
+                    setUpdatedInfo({
+                      displayName: userData.displayName,
+                      email: userData.email,
+                      profilePicture: userData.profilePicture
+                    });
+                    setProfilePicturePreview(userData.profilePicture);
+                  }}
+                >
+                  <X size={18} />
+                </button>
+                <button 
+                  className="save-btn" 
+                  onClick={handleProfileUpdate}
+                  disabled={loading || isUploading}
+                >
+                  {loading || isUploading ? 'Saving...' : <><Save size={18} /> Save</>}
+                </button>
+              </div>
             ) : (
-              <span className="info-value">{userData.displayName}</span>
+              <button 
+                className="edit-btn" 
+                onClick={() => setEditMode(true)}
+              >
+                Edit Profile
+              </button>
             )}
           </div>
           
-          <div className="info-item">
-            <span className="info-label">Email:</span>
-            {editMode ? (
-              <input
-                type="email"
-                value={updatedInfo.email}
-                onChange={(e) => setUpdatedInfo({...updatedInfo, email: e.target.value})}
-              />
-            ) : (
-              <span className="info-value">{userData.email}</span>
-            )}
-          </div>
-          
-          <div className="info-item">
-            <span className="info-label">Role:</span>
-            <span className="info-value">{userData.role}</span>
-          </div>
-          
-          <div className="info-item">
-            <span className="info-label">Subscription Status:</span>
-            <span className={`info-value ${userData.subscriptionStatus === 'active' ? 'active' : 'inactive'}`}>
-              {userData.subscriptionStatus}
-            </span>
-          </div>
-          
-          {userData.subscriptionEnd && (
-            <div className="info-item">
-              <span className="info-label">Subscription Ends:</span>
-              <span className="info-value">{userData.subscriptionEnd}</span>
+          <div className="profile-section">
+            <div className="profile-picture-container">
+              <div className="profile-picture">
+                {profilePicturePreview ? (
+                  <img src={profilePicturePreview} alt="Profile" />
+                ) : (
+                  <div className="profile-picture-placeholder">
+                    <User size={48} />
+                  </div>
+                )}
+              </div>
+              
+              {editMode && (
+                <div className="profile-picture-upload">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleProfilePictureChange}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                  />
+                  <button 
+                    className="upload-btn"
+                    onClick={triggerFileInput}
+                  >
+                    <Camera size={18} />
+                    Change Photo
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+            
+            <div className="profile-info">
+              <div className="info-item">
+                <span className="info-label">Name</span>
+                {editMode ? (
+                  <input
+                    type="text"
+                    className="info-input"
+                    value={updatedInfo.displayName}
+                    onChange={(e) => setUpdatedInfo({...updatedInfo, displayName: e.target.value})}
+                    placeholder="Your name"
+                  />
+                ) : (
+                  <span className="info-value">{userData.displayName || 'Not set'}</span>
+                )}
+              </div>
+              
+              <div className="info-item">
+                <span className="info-label">Email</span>
+                {editMode ? (
+                  <input
+                    type="email"
+                    className="info-input"
+                    value={updatedInfo.email}
+                    onChange={(e) => setUpdatedInfo({...updatedInfo, email: e.target.value})}
+                    placeholder="Your email"
+                  />
+                ) : (
+                  <span className="info-value">{userData.email}</span>
+                )}
+              </div>
+              
+              <div className="info-item">
+                <span className="info-label">Role</span>
+                <span className="info-value role-badge">{userData.role || 'member'}</span>
+              </div>
+              
+              <div className="info-item">
+                <span className="info-label">Subscription</span>
+                <span className={`info-value subscription-badge ${userData.subscriptionStatus === 'active' ? 'active' : 'inactive'}`}>
+                  {userData.subscriptionStatus || 'inactive'}
+                </span>
+              </div>
+              
+              {userData.subscriptionEnd && (
+                <div className="info-item">
+                  <span className="info-label">Subscription Ends</span>
+                  <span className="info-value">{userData.subscriptionEnd}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
         
-        <div className="button-group">
-          {editMode ? (
-            <>
-              <button 
-                className="save-button" 
-                onClick={handleProfileUpdate}
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button 
-                className="cancel-button" 
-                onClick={() => {
-                  setEditMode(false);
-                  setUpdatedInfo({
-                    displayName: userData.displayName,
-                    email: userData.email
-                  });
-                }}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
+        {/* Security Card */}
+        <div className="settings-card security-card">
+          <div className="card-header">
+            <h2>Security</h2>
+            <Shield size={20} />
+          </div>
+          
+          <form onSubmit={handlePasswordUpdate}>
+            <div className="form-group">
+              <label htmlFor="currentPassword">Current Password</label>
+              <div className="password-input">
+                <input
+                  type={showCurrentPassword ? "text" : "password"}
+                  id="currentPassword"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  required
+                />
+                <button 
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                >
+                  {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="newPassword">New Password</label>
+              <div className="password-input">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  required
+                />
+                <button 
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              <div className="password-hint">
+                Must be at least 6 characters
+              </div>
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm New Password</label>
+              <div className="password-input">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                />
+                <button 
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            
             <button 
-              className="edit-button" 
-              onClick={() => setEditMode(true)}
+              type="submit" 
+              className="update-password-btn"
+              disabled={loading || !currentPassword || !newPassword || !confirmPassword}
             >
-              Edit Profile
+              {loading ? 'Updating...' : <><Lock size={18} /> Update Password</>}
             </button>
-          )}
+          </form>
         </div>
-      </div>
-      
-      <div className="settings-card">
-        <h2>Change Password</h2>
-        <form onSubmit={handlePasswordUpdate}>
-          <div className="form-group">
-            <label htmlFor="currentPassword">Current Password:</label>
-            <input
-              type="password"
-              id="currentPassword"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-            />
+        
+        {/* Preferences Card */}
+        <div className="settings-card preferences-card">
+          <div className="card-header">
+            <h2>Preferences</h2>
+            <Monitor size={20} />
           </div>
           
-          <div className="form-group">
-            <label htmlFor="newPassword">New Password:</label>
-            <input
-              type="password"
-              id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
+          <div className="preference-item">
+            <div className="preference-info">
+              <h3>Theme</h3>
+              <p>Customize the appearance of your learning environment</p>
+            </div>
+            <div className="theme-toggle">
+              <button className="theme-option light">
+                <Sun size={18} />
+                Light
+              </button>
+              <button className="theme-option dark">
+                <Moon size={18} />
+                Dark
+              </button>
+            </div>
           </div>
           
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm New Password:</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+          <div className="preference-item">
+            <div className="preference-info">
+              <h3>Notifications</h3>
+              <p>Manage how you receive updates about your courses</p>
+            </div>
+            <div className="notification-toggle">
+              <label className="switch">
+                <input type="checkbox" defaultChecked />
+                <span className="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        {/* Danger Zone Card */}
+        <div className="settings-card danger-card">
+          <div className="card-header">
+            <h2>Danger Zone</h2>
+            <AlertTriangle size={20} />
           </div>
           
-          <button 
-            type="submit" 
-            className="update-button"
-            disabled={loading}
-          >
-            {loading ? 'Updating...' : 'Update Password'}
-          </button>
-        </form>
-      </div>
-      
-      <div className="settings-card danger-zone">
-        <h2>Danger Zone</h2>
-        <div className="danger-item">
-          <div>
-            <h3>Delete Account</h3>
-            <p>Permanently delete your account and all associated data.</p>
+          <div className="danger-item">
+            <div className="danger-info">
+              <h3>Delete Account</h3>
+              <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+            </div>
+            <button 
+              className="delete-account-btn"
+              onClick={handleDeleteAccount}
+              disabled={loading || !currentPassword}
+            >
+              Delete Account
+            </button>
           </div>
-          <button 
-            className="delete-button"
-            onClick={handleDeleteAccount}
-            disabled={loading || !currentPassword}
-          >
-            Delete Account
-          </button>
         </div>
       </div>
     </div>

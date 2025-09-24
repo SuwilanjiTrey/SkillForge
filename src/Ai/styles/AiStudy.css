@@ -1,0 +1,460 @@
+/* src/components/ai/styles/AIStudy.css */
+.ai-study-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ai-study-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.ai-study-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.ai-study-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.ai-study-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #666;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  color: #667eea;
+}
+
+.tab-button.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.ai-study-content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 30px;
+}
+
+.document-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+}
+
+.document-section h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.document-upload {
+  margin-bottom: 25px;
+}
+
+.upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.upload-label:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.progress-container {
+  margin-bottom: 20px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e1e5e9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  margin-top: 5px;
+  font-size: 14px;
+  color: #666;
+}
+
+.documents-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Document Search Styling */
+.document-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.document-search input {
+  width: 100%;
+  border: none;
+  background: none;
+  outline: none;
+  padding-left: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+.document-search svg {
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+/* Download Button Styling */
+.download-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #4b5563;
+}
+
+.download-button:hover {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.download-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Flashcard Controls Styling */
+.flashcard-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.flashcard-controls button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4f46e5;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.flashcard-controls button:hover {
+  background-color: #4338ca;
+}
+
+.flashcard-controls button:disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.flashcard-progress {
+  text-align: center;
+  margin-top: 15px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.document-item:hover {
+  background: #f8f9fa;
+}
+
+.document-item.selected {
+  background: #f0f2ff;
+  border-left: 4px solid #667eea;
+}
+
+.tools-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.tools-section h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.tool-description {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.generate-button {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 30px;
+}
+
+.generate-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.generate-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tools-section h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.quizzes-list, .flashcards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.quiz-item, .flashcard-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quiz-item:hover, .flashcard-set:hover {
+  background: #f0f2ff;
+  transform: translateY(-2px);
+}
+
+.quiz-info, .flashcard-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.quiz-info h4, .flashcard-info h4 {
+  font-size: 1rem;
+  color: #333;
+  margin: 0;
+}
+
+.quiz-info p, .flashcard-info p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.flashcard-viewer {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.flashcard-container {
+  perspective: 1000px;
+  margin-bottom: 20px;
+}
+
+.flashcard {
+  width: 100%;
+  height: 300px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.flashcard.flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+  position: absolute;
+  height: 200px;
+  width: 650px;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.flashcard-front {
+  background: white;
+
+}
+
+.flashcard-back {
+  background: #f0f2ff;
+  transform: rotateY(180deg);
+  height: 200px;
+  width: 650px;
+
+}
+
+.flashcard-front h4, .flashcard-back h4 {
+  font-size: 1.2rem;
+  color: #667eea;
+  margin-bottom: 15px;
+}
+
+.flashcard-front p, .flashcard-back p {
+  font-size: 1rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.flashcard-controls {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.flashcard-controls button {
+  padding: 8px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.flashcard-controls button:hover:not(:disabled) {
+  background: #5a67d8;
+}
+
+.flashcard-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.flashcard-progress {
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+
+/* src/components/ai/styles/AIStudy.css - Additions */
+
+.ocr-progress-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(102, 126, 234, 0.9);
+  color: white;
+  padding: 15px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ocr-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ocr-progress-fill {
+  height: 100%;
+  background: white;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.ocr-progress-text {
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .ai-study-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .flashcard-front, .flashcard-back {
+  height: 200px;
+  width: 220px;
+  }
+}

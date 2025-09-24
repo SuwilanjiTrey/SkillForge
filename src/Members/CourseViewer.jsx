@@ -1,7 +1,20 @@
+// src/components/CourseViewer.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import CourseData from "./Course&UserData/courses.jsx";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { 
+  BookOpen, 
+  Play, 
+  FileText, 
+  Video, 
+  ChevronLeft, 
+  ChevronRight,
+  Clock,
+  CheckCircle,
+  BarChart3,
+  User
+} from "lucide-react";
 import "../Styles/courseviewer.css";
 
 const CourseViewer = () => {
@@ -15,6 +28,12 @@ const CourseViewer = () => {
   const [documentError, setDocumentError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [progress, setProgress] = useState({
+    completedModules: 0,
+    totalModules: 0,
+    completedContent: 0,
+    totalContent: 0
+  });
 
   useEffect(() => {
     const fetchCourseData = async () => {
@@ -22,9 +41,7 @@ const CourseViewer = () => {
         const userId = localStorage.getItem("userId");
         const userEmail = localStorage.getItem("userEmail");
 
-	
-	// call the course data class
-
+        // call the course data class
         const courseDataService = new CourseData(userId, userEmail);
         const courseData = await courseDataService.getCourseById(courseId);
 
@@ -32,6 +49,38 @@ const CourseViewer = () => {
           setError(courseDataService.getError());
         } else {
           setCourse(courseData);
+          
+          // Calculate progress
+          let completedModules = 0;
+          let completedContent = 0;
+          let totalContent = 0;
+          
+          if (courseData.modules) {
+            courseData.modules.forEach(module => {
+              if (module.content) {
+                totalContent += module.content.length;
+                module.content.forEach(content => {
+                  if (content.completed) {
+                    completedContent++;
+                  }
+                });
+                
+                // Check if all content in module is completed
+                const moduleCompleted = module.content.every(content => content.completed);
+                if (moduleCompleted) {
+                  completedModules++;
+                }
+              }
+            });
+          }
+          
+          setProgress({
+            completedModules,
+            totalModules: courseData.modules ? courseData.modules.length : 0,
+            completedContent,
+            totalContent
+          });
+          
           // Set the first module as active by default
           if (courseData && courseData.modules && courseData.modules.length > 0) {
             setActiveModule(courseData.modules[0]);
@@ -157,6 +206,49 @@ const CourseViewer = () => {
     navigate(-1); // Navigate back to previous page
   };
 
+  const markContentAsCompleted = async (contentId) => {
+    try {
+      // Update the content as completed in the course data
+      const updatedModules = course.modules.map(module => {
+        if (module.content) {
+          const updatedContent = module.content.map(content => {
+            if (content.id === contentId) {
+              return { ...content, completed: true };
+            }
+            return content;
+          });
+          return { ...module, content: updatedContent };
+        }
+        return module;
+      });
+      
+      setCourse({ ...course, modules: updatedModules });
+      
+      // Update progress
+      let completedContent = 0;
+      updatedModules.forEach(module => {
+        if (module.content) {
+          module.content.forEach(content => {
+            if (content.completed) {
+              completedContent++;
+            }
+          });
+        }
+      });
+      
+      setProgress(prev => ({
+        ...prev,
+        completedContent
+      }));
+      
+      // Show success notification
+      alert("Content marked as completed!");
+    } catch (error) {
+      console.error("Error marking content as completed:", error);
+      alert("Failed to mark content as completed. Please try again.");
+    }
+  };
+
   // Function to determine if the URL is for a Google service
   const isGoogleService = (url) => {
     if (!url) return false;
@@ -219,41 +311,48 @@ const CourseViewer = () => {
           
           return (
             <div className="content-viewer document-viewer">
-              <h3>{content.title}</h3>
-              <p>{content.description}</p>
-              
-              {/* Google Doc/Sheet/Slides viewer */}
-              <div className="google-doc-container">
-                <div className="google-doc-header">
-                  
-                  <div className="google-doc-info">
-                    <h4>{content.title}</h4>
-                    <p>{fileType}</p>
+              <div className="content-header">
+                <div className="content-title-section">
+                  <div className="content-type-icon">
+                    <FileText size={20} />
                   </div>
-                  <div className="google-doc-actions">
-                    <a 
-                      href={content.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="google-drive-button"
+                  <div>
+                    <h3>{content.title}</h3>
+                    <p className="content-type">{fileType}</p>
+                  </div>
+                </div>
+                <div className="content-actions">
+                  <a 
+                    href={content.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="open-external-btn"
+                  >
+                    Open in Google Drive
+                  </a>
+                  {!content.completed && (
+                    <button 
+                      className="complete-btn"
+                      onClick={() => markContentAsCompleted(content.id)}
                     >
-                      Open file
-                    </a>
-                  </div>
+                      <CheckCircle size={16} />
+                      Mark as Complete
+                    </button>
+                  )}
                 </div>
-                
-                {/* Embedded viewer for all Google document types */}
-                <div className="google-doc-embed">
-                  <iframe 
-                    src={embedUrl}
-                    title={content.title}
-                    width="100%" 
-                    height="600" 
-                    frameBorder="0" 
-                    allowFullScreen
-                    className="google-doc-frame"
-                  ></iframe>
-                </div>
+              </div>
+              
+              {/* Embedded viewer for all Google document types */}
+              <div className="google-doc-embed">
+                <iframe 
+                  src={embedUrl}
+                  title={content.title}
+                  width="100%" 
+                  height="600" 
+                  frameBorder="0" 
+                  allowFullScreen
+                  className="google-doc-frame"
+                ></iframe>
               </div>
               
               {/* Keep the document content for Google Docs for fallback and review functionality */}
@@ -268,8 +367,31 @@ const CourseViewer = () => {
           // For non-Google Docs, keep the existing document view implementation
           return (
             <div className="content-viewer document-viewer">
-              <h3>{content.title}</h3>
-              <p>{content.description}</p>
+              <div className="content-header">
+                <div className="content-title-section">
+                  <div className="content-type-icon">
+                    <FileText size={20} />
+                  </div>
+                  <div>
+                    <h3>{content.title}</h3>
+                    <p className="content-type">Document</p>
+                  </div>
+                </div>
+                <div className="content-actions">
+                  <a href={content.url} target="_blank" rel="noopener noreferrer" className="open-external-btn">
+                    Open Document
+                  </a>
+                  {!content.completed && (
+                    <button 
+                      className="complete-btn"
+                      onClick={() => markContentAsCompleted(content.id)}
+                    >
+                      <CheckCircle size={16} />
+                      Mark as Complete
+                    </button>
+                  )}
+                </div>
+              </div>
               
               {/* Document Content Display */}
               <div className="document-content-area">
@@ -301,44 +423,95 @@ const CourseViewer = () => {
                   ></iframe>
                 </div>
               )}
-              
-              {/* Additional link to open in Google Drive */}
-              <div className="document-external-link">
-                <a href={content.url} target="_blank" rel="noopener noreferrer">
-                  Open in Google Drive
-                </a>
-              </div>
             </div>
           );
         }
-      
+        
       case "video":
         const videoId = getYouTubeId(content.url);
         if (videoId) {
           return (
             <div className="content-viewer video-viewer">
-              <h3>{content.title}</h3>
-              <p>{content.description}</p>
-              <iframe
-                width="100%"
-                height="480"
-                src={`https://www.youtube.com/embed/${videoId}`}
-                title={content.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="video-frame"
-              ></iframe>
+              <div className="content-header">
+                <div className="content-title-section">
+                  <div className="content-type-icon">
+                    <Video size={20} />
+                  </div>
+                  <div>
+                    <h3>{content.title}</h3>
+                    <p className="content-type">Video</p>
+                  </div>
+                </div>
+                <div className="content-actions">
+                  <a href={content.url} target="_blank" rel="noopener noreferrer" className="open-external-btn">
+                    Watch on YouTube
+                  </a>
+                  {!content.completed && (
+                    <button 
+                      className="complete-btn"
+                      onClick={() => markContentAsCompleted(content.id)}
+                    >
+                      <CheckCircle size={16} />
+                      Mark as Complete
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="video-container">
+                <iframe
+                  width="100%"
+                  height="480"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title={content.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="video-frame"
+                ></iframe>
+              </div>
+              
+              <div className="video-description">
+                <p>{content.description}</p>
+              </div>
             </div>
           );
         } else {
           return (
             <div className="content-viewer video-viewer">
-              <h3>{content.title}</h3>
-              <p>{content.description}</p>
-              <a href={content.url} target="_blank" rel="noopener noreferrer" className="video-link">
-                Open Video
-              </a>
+              <div className="content-header">
+                <div className="content-title-section">
+                  <div className="content-type-icon">
+                    <Video size={20} />
+                  </div>
+                  <div>
+                    <h3>{content.title}</h3>
+                    <p className="content-type">Video</p>
+                  </div>
+                </div>
+                <div className="content-actions">
+                  <a href={content.url} target="_blank" rel="noopener noreferrer" className="open-external-btn">
+                    Open Video
+                  </a>
+                  {!content.completed && (
+                    <button 
+                      className="complete-btn"
+                      onClick={() => markContentAsCompleted(content.id)}
+                    >
+                      <CheckCircle size={16} />
+                      Mark as Complete
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              <div className="video-description">
+                <p>{content.description}</p>
+                <a href={content.url} target="_blank" rel="noopener noreferrer" className="video-link">
+                  <Play size={16} />
+                  Watch Video
+                </a>
+              </div>
             </div>
           );
         }
@@ -346,11 +519,35 @@ const CourseViewer = () => {
       default:
         return (
           <div className="content-viewer">
-            <h3>{content.title}</h3>
-            <p>{content.description}</p>
-            <a href={content.url} target="_blank" rel="noopener noreferrer" className="content-link">
-              Open Content
-            </a>
+            <div className="content-header">
+              <div className="content-title-section">
+                <div className="content-type-icon">
+                  <FileText size={20} />
+                </div>
+                <div>
+                  <h3>{content.title}</h3>
+                  <p className="content-type">Content</p>
+                </div>
+              </div>
+              <div className="content-actions">
+                <a href={content.url} target="_blank" rel="noopener noreferrer" className="open-external-btn">
+                  Open Content
+                </a>
+                {!content.completed && (
+                  <button 
+                    className="complete-btn"
+                    onClick={() => markContentAsCompleted(content.id)}
+                  >
+                    <CheckCircle size={16} />
+                    Mark as Complete
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="content-description">
+              <p>{content.description}</p>
+            </div>
           </div>
         );
     }
@@ -389,13 +586,14 @@ const CourseViewer = () => {
 
   return (
     <div className="course-viewer-container">
+      {/* Course Header */}
       <div className="course-viewer-header">
         <button className="back-button" onClick={handleBackClick}>
-          ← Back to Courses
+          <ChevronLeft size={20} />
+          Back to Courses
         </button>
-        <h1>{course.title}</h1>
-        <div className="course-info">
-          <p className="course-description" dangerouslySetInnerHTML={{ __html: course.description }}></p>
+        <div className="course-title-section">
+          <h1>{course.title}</h1>
           <div className="course-meta">
             {course.targetYears && (
               <span className="course-year">{course.targetYears.join(", ")}</span>
@@ -405,50 +603,128 @@ const CourseViewer = () => {
             )}
           </div>
         </div>
+        <div className="course-progress-overview">
+          <div className="progress-stats">
+            <div className="progress-stat">
+              <span className="progress-number">{progress.completedModules}</span>
+              <span className="progress-label">Modules</span>
+            </div>
+            <div className="progress-divider"></div>
+            <div className="progress-stat">
+              <span className="progress-number">{progress.completedContent}</span>
+              <span className="progress-label">Content</span>
+            </div>
+            <div className="progress-divider"></div>
+            <div className="progress-stat">
+              <span className="progress-number">
+                {progress.totalContent > 0 ? Math.round((progress.completedContent / progress.totalContent) * 100) : 0}%
+              </span>
+              <span className="progress-label">Complete</span>
+            </div>
+          </div>
+          <div className="progress-bar-container">
+            <div className="progress-bar">
+              <div 
+                className="progress-fill" 
+                style={{width: `${progress.totalContent > 0 ? (progress.completedContent / progress.totalContent) * 100 : 0}%`}}
+              ></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="course-content-layout">
+        {/* Modules Sidebar */}
         <div className="modules-sidebar">
-          <h2>Modules</h2>
+          <div className="sidebar-header">
+            <h2>Course Content</h2>
+            <div className="modules-progress">
+              <span>{progress.completedModules} of {progress.totalModules} modules completed</span>
+            </div>
+          </div>
+          
           <ul className="modules-list">
-            {course.modules && course.modules.map((module, index) => (
-              <li 
-                key={module.id || index}
-                className={`module-item ${activeModule && activeModule.id === module.id ? 'active' : ''}`}
-                onClick={() => handleModuleClick(module)}
-              >
-                <div className="module-title">
-                  <span className="module-number">{module.order || index + 1}</span>
-                  {module.title}
-                </div>
+            {course.modules && course.modules.map((module, index) => {
+              // Check if all content in module is completed
+              const moduleCompleted = module.content && module.content.length > 0 
+                ? module.content.every(content => content.completed)
+                : false;
                 
-                {activeModule && activeModule.id === module.id && module.content && (
-                  <ul className="content-list">
-                    {module.content.map((contentItem, contentIndex) => (
-                      <li 
-                        key={contentItem.id || contentIndex}
-                        className={`content-item ${activeContent && activeContent.id === contentItem.id ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleContentClick(contentItem);
-                        }}
-                      >
-                        {contentItem.title}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
+              // Count completed content in this module
+              const completedInModule = module.content 
+                ? module.content.filter(content => content.completed).length
+                : 0;
+                
+              return (
+                <li 
+                  key={module.id || index}
+                  className={`module-item ${activeModule && activeModule.id === module.id ? 'active' : ''} ${moduleCompleted ? 'completed' : ''}`}
+                  onClick={() => handleModuleClick(module)}
+                >
+                  <div className="module-header">
+                    <div className="module-number">{module.order || index + 1}</div>
+                    <div className="module-title">{module.title}</div>
+                    {moduleCompleted && (
+                      <div className="module-completed">
+                        <CheckCircle size={16} />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {module.content && module.content.length > 0 && (
+                    <div className="module-content-preview">
+                      <div className="module-content-stats">
+                        <span>{completedInModule}/{module.content.length} completed</span>
+                      </div>
+                      
+                      <ul className="content-list">
+                        {module.content.slice(0, 3).map((contentItem, contentIndex) => (
+                          <li 
+                            key={contentItem.id || contentIndex}
+                            className={`content-item ${activeContent && activeContent.id === contentItem.id ? 'active' : ''} ${contentItem.completed ? 'completed' : ''}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleContentClick(contentItem);
+                            }}
+                          >
+                            <div className="content-icon">
+                              {contentItem.type === "document" && <FileText size={14} />}
+                              {contentItem.type === "video" && <Video size={14} />}
+                              {contentItem.type === "quiz" && <BarChart3 size={14} />}
+                            </div>
+                            <div className="content-title">{contentItem.title}</div>
+                            {contentItem.completed && (
+                              <div className="content-completed">
+                                <CheckCircle size={14} />
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                        {module.content.length > 3 && (
+                          <li className="content-more">
+                            +{module.content.length - 3} more
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
+        {/* Content Display Area */}
         <div className="content-display-area">
           {activeContent ? (
             renderContent(activeContent)
           ) : (
             <div className="no-content-message">
-              <p>Select a content item from the sidebar to view it.</p>
+              <div className="no-content-icon">
+                <BookOpen size={48} />
+              </div>
+              <h3>Select a content item to view</h3>
+              <p>Choose a module from the sidebar to start learning</p>
             </div>
           )}
         </div>
