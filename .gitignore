@@ -17,6 +17,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.env
 
 #ignore config files that hold firebase api keys
 /src/Config

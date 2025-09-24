@@ -9,8 +9,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  X
+  X,
+  LogOut,
 } from 'lucide-react';
+import { getAuth, signOut } from "firebase/auth";
 import './styles/Tutorstyles.css';
 
 const TutorNavigationDrawer = ({ children }) => {
@@ -38,6 +40,19 @@ const TutorNavigationDrawer = ({ children }) => {
   const handleNavigation = (path) => {
     navigate(path);
     setMobileOpen(false); // Close mobile menu after navigation
+  };
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth();
+      await signOut(auth);
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userId");
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -84,6 +99,10 @@ const TutorNavigationDrawer = ({ children }) => {
                   </li>
                 ))}
               </ul>
+              <button className="logout-button" onClick={handleLogout}>
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>
             </nav>
           </div>
         </>
@@ -123,7 +142,13 @@ const TutorNavigationDrawer = ({ children }) => {
               </li>
             ))}
           </ul>
-        </nav>
+       <button className="logout-button" onClick={handleLogout}>
+              <LogOut size={18} />
+              <span>Logout</span>
+            </button>   
+          
+         </nav>
+        
       </div>
       
       {/* Main Content */}
