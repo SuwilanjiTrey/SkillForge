@@ -1,19 +1,15 @@
-
-// src/components/admin/CourseDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { db } from '../AnA/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import './styles/coursedashboard.css';
-
-
 
 const TutorCourses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
-  const [activeTab, setActiveTab] = useState('details'); // 'details' or 'modules'
+  const [activeTab, setActiveTab] = useState('details');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,22 +18,51 @@ const TutorCourses = () => {
     modules: []
   });
 
+  const auth = getAuth();
+
   useEffect(() => {
-    fetchCourses();
+    fetchAssignedCourses();
   }, []);
 
-  const fetchCourses = async () => {
+  const fetchAssignedCourses = async () => {
     try {
       setLoading(true);
-      const coursesCollection = collection(db, 'courses');
-      const courseSnapshot = await getDocs(coursesCollection);
-      const courseList = courseSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setCourses(courseList);
+      const user = auth.currentUser;
+      
+      if (!user) {
+        setError("User not authenticated");
+        setLoading(false);
+        return;
+      }
+
+      // Get tutor document to see assigned courses
+      const tutorDoc = await getDoc(doc(db, "tutors", user.uid));
+      
+      if (!tutorDoc.exists()) {
+        setError("Tutor document not found");
+        setLoading(false);
+        return;
+      }
+
+      const tutorData = tutorDoc.data();
+      const assignedCourseIds = tutorData.assignedCourses || [];
+
+      // Fetch only assigned courses
+      const coursesData = [];
+      for (const courseId of assignedCourseIds) {
+        const courseDoc = await getDoc(doc(db, "courses", courseId));
+        if (courseDoc.exists()) {
+          coursesData.push({
+            id: courseDoc.id,
+            ...courseDoc.data()
+          });
+        }
+      }
+      
+      setCourses(coursesData);
       setLoading(false);
     } catch (err) {
+      console.error("Error fetching courses:", err);
       setError('Failed to fetch courses');
       setLoading(false);
     }
@@ -160,22 +185,17 @@ const TutorCourses = () => {
     try {
       const courseData = {
         ...formData,
-        createdAt: editingCourse ? editingCourse.createdAt : new Date(),
         updatedAt: new Date()
       };
 
-      if (editingCourse) {
-        // Update existing course
-        const courseRef = doc(db, 'courses', editingCourse.id);
-        await updateDoc(courseRef, courseData);
-      } else {
-        // Add new course
-        await addDoc(collection(db, 'courses'), courseData);
-      }
+      // Update existing course
+      const courseRef = doc(db, 'courses', editingCourse.id);
+      await updateDoc(courseRef, courseData);
+      
       resetForm();
-      fetchCourses();
+      fetchAssignedCourses();
     } catch (err) {
-      setError(editingCourse ? 'Failed to update course' : 'Failed to create course');
+      setError('Failed to update course');
     }
   };
 
@@ -188,7 +208,6 @@ const TutorCourses = () => {
       targetYears: course.targetYears,
       modules: course.modules
     });
-    setShowForm(true);
     setActiveTab('details');
   };
 
@@ -196,7 +215,7 @@ const TutorCourses = () => {
     if (window.confirm('Are you sure you want to delete this course?')) {
       try {
         await deleteDoc(doc(db, 'courses', id));
-        fetchCourses();
+        fetchAssignedCourses();
       } catch (err) {
         setError('Failed to delete course');
       }
@@ -212,7 +231,6 @@ const TutorCourses = () => {
       modules: []
     });
     setEditingCourse(null);
-    setShowForm(false);
     setActiveTab('details');
   };
 
@@ -222,16 +240,11 @@ const TutorCourses = () => {
   return (
     <div className="course-dashboard-container">
       <div className="dashboard-header">
-        <h1>Course Management</h1>
-        <button 
-          className="btn-primary" 
-          onClick={() => setShowForm(!showForm)}
-        >
-          {showForm ? 'Cancel' : 'Add New Course'}
-        </button>
+        <h1>Manage Your Courses</h1>
+        <p>You can only edit courses that have been assigned to you by an admin</p>
       </div>
 
-      {showForm && (
+      {editingCourse && (
         <div className="course-form-container">
           <div className="form-tabs">
             <button 
@@ -454,7 +467,7 @@ const TutorCourses = () => {
 
             <div className="form-actions">
               <button type="submit" className="btn-primary">
-                {editingCourse ? 'Update Course' : 'Create Course'}
+                Update Course
               </button>
               <button type="button" className="btn-secondary" onClick={resetForm}>
                 Cancel
@@ -467,8 +480,8 @@ const TutorCourses = () => {
       <div className="courses-grid">
         {courses.length === 0 ? (
           <div className="no-courses-message">
-            <h3>No courses found</h3>
-            <p>Create your first course to get started</p>
+            <h3>No courses assigned to you</h3>
+            <p>Contact an admin to get courses assigned to you</p>
           </div>
         ) : (
           courses.map(course => (

@@ -68,6 +68,7 @@ const AdminNavigationDrawer = ({ children }) => {
             <BookOpen size={18} />
             <span>Manage Courses</span>
           </Link>
+          {/*
           <Link 
             to="/admin/assessments" 
             className={`nav-item ${isActive('/admin/assessments') ? 'active' : ''}`}
@@ -82,6 +83,8 @@ const AdminNavigationDrawer = ({ children }) => {
             <Video size={18} />
             <span>Start Live Tutorial</span>
           </Link>
+          
+          */}
           <Link 
             to="/adminSettings" 
             className={`nav-item ${isActive('/adminSettings') ? 'active' : ''}`}

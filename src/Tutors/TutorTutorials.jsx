@@ -1,23 +1,23 @@
-// src/Admin/TutorialManagement.jsx
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../AnA/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc, query, where } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import '../Styles/TutorialManagement.css';
 
-
 const TutorTutorials = () => {
   const [tutorials, setTutorials] = useState([]);
+  const [assignedCourses, setAssignedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingTutorial, setEditingTutorial] = useState(null);
   const [user, setUser] = useState(null);
+  const [tutorData, setTutorData] = useState(null);
   
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    meetLink: '', // Changed from videoId to meetLink
+    meetLink: '',
     hostName: '',
     hostId: '',
     courseId: '',
@@ -25,8 +25,8 @@ const TutorTutorials = () => {
     targetAudience: '',
     scheduledDate: '',
     duration: '',
-    status: 'scheduled', // 'scheduled', 'live', 'completed'
-    accessLevel: 'all' // 'all', 'specific', 'premium'
+    status: 'scheduled',
+    accessLevel: 'all'
   });
 
   useEffect(() => {
@@ -39,6 +39,7 @@ const TutorTutorials = () => {
           hostName: currentUser.displayName || '',
           hostId: currentUser.uid
         }));
+        fetchTutorData(currentUser);
       } else {
         setError('You must be logged in to manage tutorials');
         setLoading(false);
@@ -48,22 +49,68 @@ const TutorTutorials = () => {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      fetchTutorials();
-    }
-  }, [user]);
-
-  const fetchTutorials = async () => {
+  const fetchTutorData = async (currentUser) => {
     try {
-      setLoading(true);
-      const tutorialsCollection = collection(db, 'liveSessions');
-      const tutorialSnapshot = await getDocs(tutorialsCollection);
+      // Get tutor document
+      const tutorDoc = await getDoc(doc(db, "tutors", currentUser.uid));
+      
+      if (!tutorDoc.exists()) {
+        setError("You don't have tutor privileges. Please contact an administrator.");
+        setLoading(false);
+        return;
+      }
+
+      const tutor = tutorDoc.data();
+      setTutorData(tutor);
+      
+      // Get assigned courses
+      const assignedCourseIds = tutor.assignedCourses || [];
+      const coursesData = [];
+      
+      for (const courseId of assignedCourseIds) {
+        try {
+          const courseDoc = await getDoc(doc(db, "courses", courseId));
+          if (courseDoc.exists()) {
+            coursesData.push({
+              id: courseDoc.id,
+              ...courseDoc.data()
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching course ${courseId}:`, err);
+        }
+      }
+      
+      setAssignedCourses(coursesData);
+      
+      // Fetch tutorials created by this tutor
+      fetchTutorials(currentUser.uid);
+    } catch (err) {
+      console.error("Error fetching tutor data:", err);
+      setError('Failed to load tutor data');
+      setLoading(false);
+    }
+  };
+
+  const fetchTutorials = async (userId) => {
+    try {
+      const tutorialsQuery = query(
+        collection(db, 'liveSessions'),
+        where('createdBy', '==', userId)
+      );
+      
+      const tutorialSnapshot = await getDocs(tutorialsQuery);
       const tutorialList = tutorialSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      setTutorials(tutorialList);
+      
+      // Filter to only show active tutorials (not completed)
+      const activeTutorials = tutorialList.filter(
+        tutorial => tutorial.status !== 'completed'
+      );
+      
+      setTutorials(activeTutorials);
       setLoading(false);
     } catch (err) {
       setError('Failed to fetch tutorials');
@@ -79,13 +126,35 @@ const TutorTutorials = () => {
     });
   };
 
+  const handleCourseChange = (e) => {
+    const courseId = e.target.value;
+    const selectedCourse = assignedCourses.find(course => course.id === courseId);
+    
+    setFormData({
+      ...formData,
+      courseId,
+      courseName: selectedCourse ? selectedCourse.title : '',
+      targetAudience: selectedCourse ? selectedCourse.targetYears?.join(', ') : ''
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Verify the selected course is in the tutor's assigned courses
+      const isAssignedCourse = assignedCourses.some(course => course.id === formData.courseId);
+      
+      if (!isAssignedCourse) {
+        setError('You can only create tutorials for courses assigned to you');
+        return;
+      }
+
       const tutorialData = {
         ...formData,
+        createdBy: user.uid,
         createdAt: editingTutorial ? editingTutorial.createdAt : new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        active: formData.status === 'live' // Set active based on status
       };
 
       if (editingTutorial) {
@@ -96,8 +165,9 @@ const TutorTutorials = () => {
         // Add new tutorial
         await addDoc(collection(db, 'liveSessions'), tutorialData);
       }
+      
       resetForm();
-      fetchTutorials();
+      fetchTutorials(user.uid);
     } catch (err) {
       setError(editingTutorial ? 'Failed to update tutorial' : 'Failed to create tutorial');
     }
@@ -108,7 +178,7 @@ const TutorTutorials = () => {
     setFormData({
       title: tutorial.title,
       description: tutorial.description,
-      meetLink: tutorial.meetLink, // Changed from videoId to meetLink
+      meetLink: tutorial.meetLink,
       hostName: tutorial.hostName,
       hostId: tutorial.hostId,
       courseId: tutorial.courseId,
@@ -126,7 +196,7 @@ const TutorTutorials = () => {
     if (window.confirm('Are you sure you want to delete this tutorial?')) {
       try {
         await deleteDoc(doc(db, 'liveSessions', id));
-        fetchTutorials();
+        fetchTutorials(user.uid);
       } catch (err) {
         setError('Failed to delete tutorial');
       }
@@ -137,7 +207,7 @@ const TutorTutorials = () => {
     setFormData({
       title: '',
       description: '',
-      meetLink: '', // Changed from videoId to meetLink
+      meetLink: '',
       hostName: user?.displayName || '',
       hostId: user?.uid || '',
       courseId: '',
@@ -157,9 +227,10 @@ const TutorTutorials = () => {
       const tutorialRef = doc(db, 'liveSessions', id);
       await updateDoc(tutorialRef, {
         status: newStatus,
+        active: newStatus === 'live',
         updatedAt: new Date()
       });
-      fetchTutorials();
+      fetchTutorials(user.uid);
     } catch (err) {
       setError('Failed to update tutorial status');
     }
@@ -172,6 +243,7 @@ const TutorTutorials = () => {
     <div className="tutorial-management-container">
       <div className="dashboard-header">
         <h1>Live Tutorial Management</h1>
+        <p>Manage your active live tutorials</p>
         <button 
           className="btn-primary" 
           onClick={() => setShowForm(!showForm)}
@@ -224,6 +296,24 @@ const TutorTutorials = () => {
               </small>
             </div>
             
+            <div className="form-group">
+              <label htmlFor="courseId">Course</label>
+              <select
+                id="courseId"
+                name="courseId"
+                value={formData.courseId}
+                onChange={handleCourseChange}
+                required
+              >
+                <option value="">Select a course</option>
+                {assignedCourses.map(course => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
             <div className="form-row">
               <div className="form-group">
                 <label htmlFor="hostName">Host Name</label>
@@ -238,20 +328,6 @@ const TutorTutorials = () => {
               </div>
               
               <div className="form-group">
-                <label htmlFor="courseName">Course Name</label>
-                <input
-                  type="text"
-                  id="courseName"
-                  name="courseName"
-                  value={formData.courseName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="form-row">
-              <div className="form-group">
                 <label htmlFor="targetAudience">Target Audience</label>
                 <input
                   type="text"
@@ -260,6 +336,20 @@ const TutorTutorials = () => {
                   value={formData.targetAudience}
                   onChange={handleInputChange}
                   placeholder="e.g., 3rd Year Students"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="scheduledDate">Scheduled Date & Time</label>
+                <input
+                  type="datetime-local"
+                  id="scheduledDate"
+                  name="scheduledDate"
+                  value={formData.scheduledDate}
+                  onChange={handleInputChange}
                   required
                 />
               </div>
@@ -279,18 +369,6 @@ const TutorTutorials = () => {
             
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="scheduledDate">Scheduled Date & Time</label>
-                <input
-                  type="datetime-local"
-                  id="scheduledDate"
-                  name="scheduledDate"
-                  value={formData.scheduledDate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="form-group">
                 <label htmlFor="status">Status</label>
                 <select
                   id="status"
@@ -304,21 +382,21 @@ const TutorTutorials = () => {
                   <option value="completed">Completed</option>
                 </select>
               </div>
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="accessLevel">Access Level</label>
-              <select
-                id="accessLevel"
-                name="accessLevel"
-                value={formData.accessLevel}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="all">All Students</option>
-                <option value="specific">Specific Programs</option>
-                <option value="premium">Premium Only</option>
-              </select>
+              
+              <div className="form-group">
+                <label htmlFor="accessLevel">Access Level</label>
+                <select
+                  id="accessLevel"
+                  name="accessLevel"
+                  value={formData.accessLevel}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="all">All Students</option>
+                  <option value="specific">Specific Programs</option>
+                  <option value="premium">Premium Only</option>
+                </select>
+              </div>
             </div>
             
             <div className="form-actions">
@@ -336,7 +414,7 @@ const TutorTutorials = () => {
       <div className="tutorials-grid">
         {tutorials.length === 0 ? (
           <div className="no-tutorials-message">
-            <h3>No tutorials found</h3>
+            <h3>No active tutorials found</h3>
             <p>Create your first tutorial to get started</p>
           </div>
         ) : (
@@ -414,4 +492,3 @@ const TutorTutorials = () => {
 };
 
 export default TutorTutorials;
-

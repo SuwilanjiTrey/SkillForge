@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, arrayUnion, arrayRemove, deleteDoc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { 
   Users, 
@@ -115,31 +115,45 @@ const AdminMembers = () => {
     }
   };
 
-  // Assign courses to a tutor
+  // Assign courses to a tutor - Updated approach
   const assignCoursesToTutor = async (tutor) => {
     if (!tutor || selectedCourses.length === 0) return;
     
     setAssigning(true);
     try {
-      // Update tutor document with assigned courses
-      await updateDoc(doc(db, "tutors", tutor.id), {
-        assignedCourses: arrayUnion(...selectedCourses)
-      });
+      // Get the current tutor document
+      const tutorRef = doc(db, "tutors", tutor.id);
+      const tutorDoc = await getDoc(tutorRef);
       
-      // Update local state
-      const updatedTutors = tutors.map(t => 
-        t.id === tutor.id 
-          ? { 
-              ...t, 
-              assignedCourses: [...(t.assignedCourses || []), ...selectedCourses] 
-            } 
-          : t
-      );
-      setTutors(updatedTutors);
-      
-      setSelectedCourses([]);
-      setShowCourseDropdown(false);
-      alert(`Successfully assigned courses to ${tutor.displayName || tutor.email}!`);
+      if (tutorDoc.exists()) {
+        // Get current assigned courses or empty array if none
+        const currentCourses = tutorDoc.data().assignedCourses || [];
+        
+        // Merge current courses with newly selected ones, avoiding duplicates
+        const updatedCourses = [...new Set([...currentCourses, ...selectedCourses])];
+        
+        // Update tutor document with merged courses
+        await updateDoc(tutorRef, {
+          assignedCourses: updatedCourses
+        });
+        
+        // Update local state
+        const updatedTutors = tutors.map(t => 
+          t.id === tutor.id 
+            ? { 
+                ...t, 
+                assignedCourses: updatedCourses
+              } 
+            : t
+        );
+        setTutors(updatedTutors);
+        
+        setSelectedCourses([]);
+        setShowCourseDropdown(false);
+        alert(`Successfully assigned courses to ${tutor.displayName || tutor.email}!`);
+      } else {
+        throw new Error("Tutor document not found");
+      }
     } catch (error) {
       console.error("Error assigning courses to tutor:", error);
       alert("Failed to assign courses to tutor. Please try again.");
@@ -154,23 +168,37 @@ const AdminMembers = () => {
     
     setAssigning(true);
     try {
-      // Update tutor document by removing the course
-      await updateDoc(doc(db, "tutors", tutor.id), {
-        assignedCourses: arrayRemove(courseId)
-      });
+      // Get the current tutor document
+      const tutorRef = doc(db, "tutors", tutor.id);
+      const tutorDoc = await getDoc(tutorRef);
       
-      // Update local state
-      const updatedTutors = tutors.map(t => 
-        t.id === tutor.id 
-          ? { 
-              ...t, 
-              assignedCourses: (t.assignedCourses || []).filter(id => id !== courseId) 
-            } 
-          : t
-      );
-      setTutors(updatedTutors);
-      
-      alert(`Successfully removed course from ${tutor.displayName || tutor.email}!`);
+      if (tutorDoc.exists()) {
+        // Get current assigned courses
+        const currentCourses = tutorDoc.data().assignedCourses || [];
+        
+        // Remove the specified course
+        const updatedCourses = currentCourses.filter(id => id !== courseId);
+        
+        // Update tutor document
+        await updateDoc(tutorRef, {
+          assignedCourses: updatedCourses
+        });
+        
+        // Update local state
+        const updatedTutors = tutors.map(t => 
+          t.id === tutor.id 
+            ? { 
+                ...t, 
+                assignedCourses: updatedCourses
+              } 
+            : t
+        );
+        setTutors(updatedTutors);
+        
+        alert(`Successfully removed course from ${tutor.displayName || tutor.email}!`);
+      } else {
+        throw new Error("Tutor document not found");
+      }
     } catch (error) {
       console.error("Error removing course from tutor:", error);
       alert("Failed to remove course from tutor. Please try again.");

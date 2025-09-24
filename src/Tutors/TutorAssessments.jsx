@@ -1,15 +1,17 @@
-// src/components/admin/AssessmentManagement.jsx
 import React, { useState, useEffect } from 'react';
 import { db } from '../AnA/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 import './styles/assessment.css';
 
 const TutorAssessments = () => {
   const [assessments, setAssessments] = useState([]);
+  const [assignedCourses, setAssignedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingAssessment, setEditingAssessment] = useState(null);
+  const [tutorData, setTutorData] = useState(null);
   const [formData, setFormData] = useState({
     assessmentTitle: '',
     courseId: '',
@@ -19,19 +21,75 @@ const TutorAssessments = () => {
     url: ''
   });
 
+  const auth = getAuth();
+
   useEffect(() => {
-    fetchAssessments();
+    fetchTutorData();
   }, []);
 
-  const fetchAssessments = async () => {
+  const fetchTutorData = async () => {
     try {
       setLoading(true);
+      const user = auth.currentUser;
+      
+      if (!user) {
+        setError('User not authenticated');
+        setLoading(false);
+        return;
+      }
+
+      // Get tutor document
+      const tutorDoc = await getDoc(doc(db, "tutors", user.uid));
+      
+      if (!tutorDoc.exists()) {
+        setError("You don't have tutor privileges. Please contact an administrator.");
+        setLoading(false);
+        return;
+      }
+
+      const tutor = tutorDoc.data();
+      setTutorData(tutor);
+      
+      // Get assigned courses
+      const assignedCourseIds = tutor.assignedCourses || [];
+      const coursesData = [];
+      
+      for (const courseId of assignedCourseIds) {
+        try {
+          const courseDoc = await getDoc(doc(db, "courses", courseId));
+          if (courseDoc.exists()) {
+            coursesData.push({
+              id: courseDoc.id,
+              ...courseDoc.data()
+            });
+          }
+        } catch (err) {
+          console.error(`Error fetching course ${courseId}:`, err);
+        }
+      }
+      
+      setAssignedCourses(coursesData);
+      
+      // Fetch assessments for assigned courses
+      fetchAssessments(assignedCourseIds);
+    } catch (err) {
+      console.error("Error fetching tutor data:", err);
+      setError('Failed to load tutor data');
+      setLoading(false);
+    }
+  };
+
+  const fetchAssessments = async (courseIds) => {
+    try {
       const assessmentsCollection = collection(db, 'Assessments');
       const assessmentSnapshot = await getDocs(assessmentsCollection);
-      const assessmentList = assessmentSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const assessmentList = assessmentSnapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(assessment => courseIds.includes(assessment.courseId));
+      
       setAssessments(assessmentList);
       setLoading(false);
     } catch (err) {
@@ -48,19 +106,44 @@ const TutorAssessments = () => {
     });
   };
 
+  const handleCourseChange = (e) => {
+    const courseId = e.target.value;
+    const selectedCourse = assignedCourses.find(course => course.id === courseId);
+    
+    setFormData({
+      ...formData,
+      courseId,
+      courseName: selectedCourse ? selectedCourse.title : '',
+      program: selectedCourse ? selectedCourse.targetPrograms?.join(', ') : ''
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Verify the selected course is in the tutor's assigned courses
+      const isAssignedCourse = assignedCourses.some(course => course.id === formData.courseId);
+      
+      if (!isAssignedCourse) {
+        setError('You can only create assessments for courses assigned to you');
+        return;
+      }
+
       if (editingAssessment) {
         // Update existing assessment
         const assessmentRef = doc(db, 'Assessments', editingAssessment.id);
         await updateDoc(assessmentRef, formData);
       } else {
         // Add new assessment
-        await addDoc(collection(db, 'Assessments'), formData);
+        await addDoc(collection(db, 'Assessments'), {
+          ...formData,
+          createdBy: auth.currentUser.uid,
+          createdAt: new Date()
+        });
       }
+      
       resetForm();
-      fetchAssessments();
+      fetchAssessments(assignedCourses.map(course => course.id));
     } catch (err) {
       setError(editingAssessment ? 'Failed to update assessment' : 'Failed to create assessment');
     }
@@ -83,7 +166,7 @@ const TutorAssessments = () => {
     if (window.confirm('Are you sure you want to delete this assessment?')) {
       try {
         await deleteDoc(doc(db, 'Assessments', id));
-        fetchAssessments();
+        fetchAssessments(assignedCourses.map(course => course.id));
       } catch (err) {
         setError('Failed to delete assessment');
       }
@@ -110,7 +193,7 @@ const TutorAssessments = () => {
     <div className="assessment-page-container">
       <div className="assessment-header">
         <h1>Assessment Management</h1>
-        <p>Manage course assessments and exams</p>
+        <p>Manage assessments for your assigned courses</p>
         <button 
           className="btn-primary" 
           onClick={() => setShowForm(!showForm)}
@@ -136,15 +219,21 @@ const TutorAssessments = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="courseId">Course ID</label>
-              <input
-                type="text"
+              <label htmlFor="courseId">Course</label>
+              <select
                 id="courseId"
                 name="courseId"
                 value={formData.courseId}
-                onChange={handleInputChange}
+                onChange={handleCourseChange}
                 required
-              />
+              >
+                <option value="">Select a course</option>
+                {assignedCourses.map(course => (
+                  <option key={course.id} value={course.id}>
+                    {course.title}
+                  </option>
+                ))}
+              </select>
             </div>
             
             <div className="form-group">
@@ -155,6 +244,7 @@ const TutorAssessments = () => {
                 name="courseName"
                 value={formData.courseName}
                 onChange={handleInputChange}
+                readOnly
                 required
               />
             </div>
@@ -167,6 +257,7 @@ const TutorAssessments = () => {
                 name="program"
                 value={formData.program}
                 onChange={handleInputChange}
+                readOnly
                 required
               />
             </div>
@@ -209,7 +300,7 @@ const TutorAssessments = () => {
 
       <div className="results-summary">
         <div className="results-info">
-          Showing {assessments.length} assessment{assessments.length !== 1 ? 's' : ''}
+          Showing {assessments.length} assessment{assessments.length !== 1 ? 's' : ''} for your assigned courses
         </div>
       </div>
 
