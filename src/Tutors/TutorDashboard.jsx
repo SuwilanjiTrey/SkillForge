@@ -149,11 +149,6 @@ const TutorDashboard = () => {
     fetchTutorData();
   }, [db, auth]);
 
-  const quickActions = [
-    { title: 'Manage Courses', icon: <BookOpen size={20} />, path: '/tutor/courses' },
-    { title: 'Start Tutorial', icon: <Video size={20} />, path: '/tutor/tutorials' },
-    { title: 'Create Assessment', icon: <FileText size={20} />, path: '/tutor/assessments' },
-  ];
 
   const handleActionClick = (path) => {
     window.location.href = path;
@@ -275,31 +270,7 @@ const TutorDashboard = () => {
           </ul>
         </div>
         
-        {/* Quick Actions */}
-        <div className="tutor-card">
-          <div className="tutor-card-header">
-            <h2 className="tutor-card-title">Quick Actions</h2>
-          </div>
-          <div className="tutor-quick-actions">
-            {quickActions.map((action, index) => (
-              <button
-                key={index}
-                onClick={() => handleActionClick(action.path)}
-                className="tutor-action-btn"
-              >
-                <div className="tutor-action-content">
-                  <div className="tutor-action-icon">
-                    {action.icon}
-                  </div>
-                  <span className="tutor-action-text">
-                    {action.title}
-                  </span>
-                </div>
-                <ArrowRight size={18} className="tutor-action-arrow" />
-              </button>
-            ))}
-          </div>
-        </div>
+       
       </div>
     </div>
   );

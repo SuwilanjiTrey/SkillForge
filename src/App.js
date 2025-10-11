@@ -14,6 +14,7 @@ import AdminMembers from "./Admin/AdminMembers";
 import AdminCourses from "./Admin/AdminCourses";
 import AdminAssessments from "./Admin/AdminAssessments";
 import TutorialManagement from "./Admin/TutorialManagement.jsx";
+import AdminTreasury from "./Admin/AdminTreasury.jsx";
 //==============// Member imports //==============//
 import MemberDashboard from "./Members/MainInter.jsx";
 import CourseViewer from "./Members/CourseViewer.jsx";
@@ -255,6 +256,14 @@ const App = () => {
           element={
             <AdminRouteWrapper>
               <AdminAssessments />
+            </AdminRouteWrapper>
+          }
+        />
+        <Route
+          path="/admin/treasury"
+          element={
+            <AdminRouteWrapper>
+              <AdminTreasury />
             </AdminRouteWrapper>
           }
         />

@@ -7,7 +7,7 @@ import {
   LogOut, 
   Home, 
   BookOpen, 
-  FileText, 
+  DollarSign, 
   Video,
   User,
   Eye,
@@ -68,14 +68,15 @@ const AdminNavigationDrawer = ({ children }) => {
             <BookOpen size={18} />
             <span>Manage Courses</span>
           </Link>
-          {/*
+          
           <Link 
-            to="/admin/assessments" 
-            className={`nav-item ${isActive('/admin/assessments') ? 'active' : ''}`}
+            to="/admin/treasury" 
+            className={`nav-item ${isActive('/admin/treasury') ? 'active' : ''}`}
           >
-            <FileText size={18} />
-            <span>Manage Assessments</span>
+            <DollarSign size={18} />
+            <span>Manage Finances</span>
           </Link>
+          {/*
           <Link 
             to="/admin/live" 
             className={`nav-item ${isActive('/admin/live') ? 'active' : ''}`}

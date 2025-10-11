@@ -1,7 +1,16 @@
+// src/components/admin/AdminSettings.jsx
 import React, { useState, useEffect } from 'react';
 import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider, deleteUser } from "firebase/auth";
-import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
-import '../Styles/settings.css';
+import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import { 
+  Lock, 
+  User, 
+  Save, 
+  X,
+  AlertTriangle,
+  Check
+} from 'lucide-react';
+import './styles/admin.css';
 
 const AdminSettings = () => {
   const [userData, setUserData] = useState({
@@ -11,8 +20,6 @@ const AdminSettings = () => {
     subscriptionStatus: '',
     subscriptionEnd: null
   });
-  const [users, setUsers] = useState([]);
-  const [treasuryBalance, setTreasuryBalance] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [newPassword, setNewPassword] = useState('');
@@ -28,7 +35,6 @@ const AdminSettings = () => {
   const db = getFirestore();
   const user = auth.currentUser;
 
-  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
@@ -60,51 +66,6 @@ const AdminSettings = () => {
     fetchUserData();
   }, [user, db]);
 
-  // Fetch all users and treasury data
-  useEffect(() => {
-    const fetchAdminData = async () => {
-      if (!user) return;
-      
-      setLoading(true);
-      try {
-        // Check if user is admin
-        const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-        if (!adminDoc.exists()) {
-          setMessage({ text: 'You do not have admin privileges', type: 'error' });
-          setLoading(false);
-          return;
-        }
-        
-        // Fetch all users
-        const usersQuery = query(collection(db, 'users'));
-        const querySnapshot = await getDocs(usersQuery);
-        const usersList = [];
-        
-        querySnapshot.forEach((doc) => {
-          usersList.push({
-            id: doc.id,
-            ...doc.data()
-          });
-        });
-        
-        setUsers(usersList);
-        
-        // Fetch treasury balance
-        const treasuryDoc = await getDoc(doc(db, 'treasury', 'main'));
-        if (treasuryDoc.exists()) {
-          setTreasuryBalance(treasuryDoc.data().balance || 0);
-        }
-      } catch (error) {
-        setMessage({ text: `Error fetching admin data: ${error.message}`, type: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAdminData();
-  }, [user, db]);
-
-  // Handle password update
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
     
@@ -120,11 +81,8 @@ const AdminSettings = () => {
     
     setLoading(true);
     try {
-      // Re-authenticate user before password change
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
-      
-      // Update password
       await updatePassword(user, newPassword);
       setMessage({ text: 'Password updated successfully', type: 'success' });
       setNewPassword('');
@@ -137,22 +95,14 @@ const AdminSettings = () => {
     }
   };
 
-  // Handle profile update
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     
     setLoading(true);
     try {
-      // Update in Firestore
       await updateDoc(doc(db, 'users', user.uid), {
         displayName: updatedInfo.displayName
       });
-      
-      // Update in auth
-      if (updatedInfo.email !== user.email) {
-        // Note: Email update requires additional verification steps
-        setMessage({ text: 'Email update requires verification. Check your email.', type: 'info' });
-      }
       
       setUserData({
         ...userData,
@@ -168,58 +118,6 @@ const AdminSettings = () => {
     }
   };
 
-  // Handle role change
-  const handleRoleChange = async (userId, newRole) => {
-    setLoading(true);
-    try {
-      const batch = writeBatch(db);
-      
-      // Update user role in users collection
-      const userRef = doc(db, 'users', userId);
-      batch.update(userRef, { role: newRole });
-      
-      // Handle role-specific collections
-      if (newRole === 'admin') {
-        // Add to admins collection
-        const adminRef = doc(db, 'admins', userId);
-        batch.set(adminRef, { role: 'admin', createdAt: new Date() });
-        
-        // Remove from tutors if exists
-        const tutorRef = doc(db, 'tutors', userId);
-        batch.delete(tutorRef);
-      } else if (newRole === 'tutor') {
-        // Add to tutors collection
-        const tutorRef = doc(db, 'tutors', userId);
-        batch.set(tutorRef, { role: 'tutor', createdAt: new Date() });
-        
-        // Remove from admins if exists
-        const adminRef = doc(db, 'admins', userId);
-        batch.delete(adminRef);
-      } else {
-        // For member or viewer, remove from both admins and tutors
-        const adminRef = doc(db, 'admins', userId);
-        batch.delete(adminRef);
-        
-        const tutorRef = doc(db, 'tutors', userId);
-        batch.delete(tutorRef);
-      }
-      
-      await batch.commit();
-      
-      // Update local state
-      setUsers(users.map(u => 
-        u.id === userId ? { ...u, role: newRole } : u
-      ));
-      
-      setMessage({ text: 'User role updated successfully', type: 'success' });
-    } catch (error) {
-      setMessage({ text: `Error updating user role: ${error.message}`, type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle account deletion
   const handleDeleteAccount = async () => {
     if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       return;
@@ -227,20 +125,16 @@ const AdminSettings = () => {
     
     setLoading(true);
     try {
-      // Re-authenticate user before deletion
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
       
-      // Delete user data from Firestore
       await updateDoc(doc(db, 'users', user.uid), {
         deleted: true,
         deletedAt: new Date()
       });
       
-      // Delete user from authentication
       await deleteUser(user);
       
-      // Note: You might want to sign out the user and redirect to login page
       setMessage({ text: 'Account deleted successfully', type: 'success' });
     } catch (error) {
       setMessage({ text: `Error deleting account: ${error.message}`, type: 'error' });
@@ -251,16 +145,30 @@ const AdminSettings = () => {
 
   return (
     <div className="settings-container">
-      <h1>Admin Settings</h1>
+      <div className="settings-header">
+        <h2>Account Settings</h2>
+        <p>Manage your account information and security settings</p>
+      </div>
       
       {message.text && (
         <div className={`message ${message.type}`}>
+          {message.type === 'success' ? <Check size={18} /> : <AlertTriangle size={18} />}
           {message.text}
         </div>
       )}
       
       <div className="settings-card">
-        <h2>Account Information</h2>
+        <div className="card-header">
+          <h3><User size={18} /> Profile Information</h3>
+          {!editMode && (
+            <button 
+              className="edit-button" 
+              onClick={() => setEditMode(true)}
+            >
+              Edit Profile
+            </button>
+          )}
+        </div>
         
         <div className="info-section">
           <div className="info-item">
@@ -278,15 +186,7 @@ const AdminSettings = () => {
           
           <div className="info-item">
             <span className="info-label">Email:</span>
-            {editMode ? (
-              <input
-                type="email"
-                value={updatedInfo.email}
-                onChange={(e) => setUpdatedInfo({...updatedInfo, email: e.target.value})}
-              />
-            ) : (
-              <span className="info-value">{userData.email}</span>
-            )}
+            <span className="info-value">{userData.email}</span>
           </div>
           
           <div className="info-item">
@@ -309,94 +209,36 @@ const AdminSettings = () => {
           )}
         </div>
         
-        <div className="button-group">
-          {editMode ? (
-            <>
-              <button 
-                className="save-button" 
-                onClick={handleProfileUpdate}
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button 
-                className="cancel-button" 
-                onClick={() => {
-                  setEditMode(false);
-                  setUpdatedInfo({
-                    displayName: userData.displayName,
-                    email: userData.email
-                  });
-                }}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
+        {editMode && (
+          <div className="button-group">
             <button 
-              className="edit-button" 
-              onClick={() => setEditMode(true)}
+              className="save-button" 
+              onClick={handleProfileUpdate}
+              disabled={loading}
             >
-              Edit Profile
+              {loading ? 'Saving...' : <><Save size={16} /> Save Changes</>}
             </button>
-          )}
-        </div>
-      </div>
-      
-      <div className="settings-card">
-        <h2>Treasury Information</h2>
-        <div className="treasury-info">
-          <div className="treasury-balance">
-            <span className="info-label">Current Balance:</span>
-            <span className="info-value">${treasuryBalance.toFixed(2)}</span>
+            <button 
+              className="cancel-button" 
+              onClick={() => {
+                setEditMode(false);
+                setUpdatedInfo({
+                  displayName: userData.displayName,
+                  email: userData.email
+                });
+              }}
+            >
+              Cancel
+            </button>
           </div>
-          <div className="treasury-actions">
-            <button className="treasury-button">Add Funds</button>
-            <button className="treasury-button">Withdraw Funds</button>
-            <button className="treasury-button">View Transactions</button>
-          </div>
-        </div>
+        )}
       </div>
       
       <div className="settings-card">
-        <h2>User Management</h2>
-        <div className="user-management">
-          <table className="user-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Current Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.displayName || 'N/A'}</td>
-                  <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>
-                    <select 
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                      disabled={loading || user.id === auth.currentUser?.uid}
-                    >
-                      <option value="viewer">Viewer</option>
-                      <option value="member">Member</option>
-                      <option value="tutor">Tutor</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="card-header">
+          <h3><Lock size={18} /> Security</h3>
         </div>
-      </div>
-      
-      <div className="settings-card">
-        <h2>Change Password</h2>
+        
         <form onSubmit={handlePasswordUpdate}>
           <div className="form-group">
             <label htmlFor="currentPassword">Current Password:</label>
@@ -436,16 +278,18 @@ const AdminSettings = () => {
             className="update-button"
             disabled={loading}
           >
-            {loading ? 'Updating...' : 'Update Password'}
+            {loading ? 'Updating...' : <><Lock size={16} /> Update Password</>}
           </button>
         </form>
       </div>
       
       <div className="settings-card danger-zone">
-        <h2>Danger Zone</h2>
+        <div className="card-header">
+          <h3><AlertTriangle size={18} /> Danger Zone</h3>
+        </div>
         <div className="danger-item">
           <div>
-            <h3>Delete Account</h3>
+            <h4>Delete Account</h4>
             <p>Permanently delete your account and all associated data.</p>
           </div>
           <button 
