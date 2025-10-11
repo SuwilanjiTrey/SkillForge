@@ -402,6 +402,7 @@ body {
   transition: var(--transition);
   border: 1px solid var(--border-color);
   position: relative;
+  width: 400px;
 }
 
 .course-card::before {
@@ -969,6 +970,9 @@ body {
     gap: var(--spacing-md);
   }
   
+  .course-card {
+  width: 300px;
+  }
   .edit-header h2 {
     margin-left: 0;
   }

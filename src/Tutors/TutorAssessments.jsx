@@ -236,6 +236,7 @@ const TutorAssessments = () => {
    * When creating/updating:
    * - courseId is the course code (e.g., "CSC 2000") entered by tutor, not the UID
    * - courseName is exact case from database
+   * - id field is added as a unique identifier (matching Firestore document ID)
    * - This ensures proper data structure matching existing assessments
    * 
    * Validation uses case-insensitive comparison to ensure tutor has access
@@ -257,7 +258,6 @@ const TutorAssessments = () => {
       // Create assessment object with course code and exact courseName from database
       const assessmentData = {
         assessmentTitle: formData.title,
-        
         courseId: formData.courseId, // Store course code (e.g., "CSC 2000")
         courseName: formData.courseName, // Store exact courseName with original case
         program: formData.program,
@@ -270,11 +270,20 @@ const TutorAssessments = () => {
       if (editingAssessment) {
         // Update existing assessment
         const assessmentRef = doc(db, 'Assessments', editingAssessment.id);
-        await updateDoc(assessmentRef, assessmentData);
+        await updateDoc(assessmentRef, {
+          ...assessmentData,
+          id: editingAssessment.id // Keep the existing id field
+        });
         setMessage({ text: 'Assessment updated successfully', type: 'success' });
       } else {
         // Add new assessment with course code and courseName
-        await addDoc(collection(db, 'Assessments'), assessmentData);
+        const docRef = await addDoc(collection(db, 'Assessments'), assessmentData);
+        
+        // Update the document to include the id field matching the Firestore document ID
+        await updateDoc(docRef, {
+          id: docRef.id
+        });
+        
         setMessage({ text: 'Assessment created successfully', type: 'success' });
       }
       
@@ -293,7 +302,6 @@ const TutorAssessments = () => {
     setEditingAssessment(assessment);
     setFormData({
       title: assessment.title,
-      id: assessment.courseId,
       courseId: assessment.courseId || '', // May be empty in old assessments
       courseName: assessment.courseName,
       program: assessment.program,
@@ -543,7 +551,7 @@ const TutorAssessments = () => {
               filteredAssessments.map(assessment => (
                 <div key={assessment.id} className="assessment-card">
                   <div className="assessment-card-header">
-                    <h3>{assessment.title}</h3>
+                    <h3>{assessment.title || assessment.assessmentTitle || 'N/A'}</h3>
                     <div className="assessment-meta">
                       <span className="assessment-course">
                         <BookOpen size={14} />

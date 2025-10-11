@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import AssessmentData from "./Course&UserData/assessmentData.jsx";
 import PremiumUserData from "./Course&UserData/userData.jsx";
 import "../Styles/assessments.css";
 import { getAuth } from "firebase/auth";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 
 const AssessmentDisplay = () => {
   const [assessments, setAssessments] = useState([]);
@@ -58,30 +58,40 @@ const AssessmentDisplay = () => {
         
         // Only fetch assessments if user is premium
         if (userDataService.isPremiumMember()) {
-          // Initialize AssessmentData service
-          const assessmentService = new AssessmentData(userId, userEmail);
+          // Fetch ALL assessments directly without filtering by program/year
+          // Let the UI do the filtering
+          const db = getFirestore();
+          const assessmentsRef = collection(db, 'Assessments');
+          const assessmentsSnapshot = await getDocs(assessmentsRef);
           
-          if (assessmentService.getError()) {
-            setError(assessmentService.getError());
-            setLoading(false);
-            return;
-          }
+          const assessmentsList = assessmentsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
           
-          // Fetch assessments
-          const assessmentsList = await assessmentService.fetchAssessments();
-          
-          if (assessmentService.getError()) {
-            setError(assessmentService.getError());
-            setLoading(false);
-            return;
-          }
+          console.log("Total assessments fetched:", assessmentsList.length);
+          console.log("Fetched assessments:", assessmentsList);
           
           setAssessments(assessmentsList);
           setFilteredAssessments(assessmentsList);
           
-          // Extract unique course IDs for filter dropdown
-          const uniqueCourses = [...new Set(assessmentsList.map(item => item.courseId))];
-          setCourses(uniqueCourses);
+          // Extract unique course IDs (course codes) for filter dropdown
+          // Group by courseId and show courseId - courseName format
+          const uniqueCourseMap = new Map();
+          assessmentsList.forEach(item => {
+            if (item.courseId && !uniqueCourseMap.has(item.courseId)) {
+              uniqueCourseMap.set(item.courseId, item.courseName || item.courseId);
+            }
+          });
+          
+          // Convert to array of objects for easier display
+          const coursesArray = Array.from(uniqueCourseMap).map(([id, name]) => ({
+            id,
+            name
+          }));
+          
+          setCourses(coursesArray);
+          console.log("Unique courses:", coursesArray);
         } else {
           setError("Premium membership required to access assessments");
         }
@@ -101,34 +111,67 @@ const AssessmentDisplay = () => {
     setCurrentPage(1);
   }, [selectedYear, selectedCourse, searchTerm]);
 
-  // Filter assessments based on selected filters and search
+  /**
+   * ALGORITHM: Filter Assessments ONLY by CourseId (Course Code)
+   * 
+   * Primary filtering is done ONLY on courseId (course code like "CSC 2000")
+   * This ensures consistency since courseName can vary (e.g., "Computer Programming" vs "Introduction to Programming")
+   * 
+   * Filters assessments based on:
+   * 1. Year level (targetAudience) - case-insensitive
+   * 2. Course code (courseId) - case-insensitive - PRIMARY FILTER
+   * 3. Search term (assessmentTitle, courseName, or courseId) - case-insensitive
+   */
   useEffect(() => {
     let filtered = [...assessments];
 
-    // Filter by year
+    console.log("Starting filter with:", {
+      totalAssessments: assessments.length,
+      selectedYear,
+      selectedCourse,
+      searchTerm
+    });
+
+    // Filter by year (case-insensitive)
     if (selectedYear !== "all") {
       filtered = filtered.filter(
-        (assessment) => assessment.targetAudience === selectedYear
+        (assessment) => 
+          assessment.targetAudience && 
+          assessment.targetAudience.toLowerCase() === selectedYear.toLowerCase()
       );
+      console.log(`After year filter (${selectedYear}):`, filtered.length);
     }
 
-    // Filter by course
+    // Filter by course code (courseId) ONLY - case-insensitive
     if (selectedCourse !== "all") {
       filtered = filtered.filter(
-        (assessment) => assessment.courseId === selectedCourse
+        (assessment) => {
+          const match = assessment.courseId && 
+            assessment.courseId.toLowerCase() === selectedCourse.toLowerCase();
+          
+          if (match) {
+            console.log(`Matched assessment: ${assessment.assessmentTitle} with courseId: ${assessment.courseId}`);
+          }
+          
+          return match;
+        }
       );
+      console.log(`After course filter (${selectedCourse}):`, filtered.length);
     }
 
-    // Filter by search term
+    // Filter by search term (case-insensitive)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
         (assessment) =>
-          assessment.assessmentTitle.toLowerCase().includes(term) ||
-          assessment.courseName.toLowerCase().includes(term)
+          (assessment.assessmentTitle && assessment.assessmentTitle.toLowerCase().includes(term)) ||
+          (assessment.courseName && assessment.courseName.toLowerCase().includes(term)) ||
+          (assessment.courseId && assessment.courseId.toLowerCase().includes(term))
       );
+      console.log(`After search filter ("${searchTerm}"):`, filtered.length);
     }
 
+    console.log("Final filtered assessments:", filtered);
     setFilteredAssessments(filtered);
   }, [selectedYear, selectedCourse, searchTerm, assessments]);
 
@@ -235,7 +278,7 @@ const AssessmentDisplay = () => {
         <div className="search-bar">
           <input
             type="text"
-            placeholder="Search by title or course name..."
+            placeholder="Search by title, course name, or course code..."
             value={searchTerm}
             onChange={handleSearchChange}
             className="search-input"
@@ -267,8 +310,8 @@ const AssessmentDisplay = () => {
             >
               <option value="all">All Courses</option>
               {courses.map((course) => (
-                <option key={course} value={course}>
-                  {course}
+                <option key={course.id} value={course.id}>
+                  {course.id} - {course.name}
                 </option>
               ))}
             </select>
