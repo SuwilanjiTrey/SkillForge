@@ -20,12 +20,25 @@ const AuthRoute = ({ children }) => {
 
         if (userSnapshot.exists()) {
           const userData = userSnapshot.data();
+          
+          // Check if user is a member
           if (userData.role === "member") {
             // Check if subscription is still valid
             if (userData.subscriptionEnd) {
-              const subscriptionEnd = new Date(userData.subscriptionEnd);
+              // Handle Firestore Timestamp properly
+              let subscriptionEndDate;
+              
+              // Check if it's a Firestore Timestamp object
+              if (userData.subscriptionEnd && typeof userData.subscriptionEnd.toDate === 'function') {
+                subscriptionEndDate = userData.subscriptionEnd.toDate();
+              } else {
+                // If it's already a Date object or a string
+                subscriptionEndDate = new Date(userData.subscriptionEnd);
+              }
+              
               const now = new Date();
-              if (subscriptionEnd > now) {
+              
+              if (subscriptionEndDate > now) {
                 setIsMember(true);
               } else {
                 setIsMember(false);

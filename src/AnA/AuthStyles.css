@@ -1,5 +1,3 @@
-
-
 .auth-container {
   display: flex;
   justify-content: center;
@@ -40,6 +38,7 @@
   background: linear-gradient(45deg, #ff79c6, #8be9fd);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .auth-header p {
@@ -87,6 +86,25 @@
   color: #6272a4;
 }
 
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: right;
+  margin-bottom: 20px;
+  margin-top: -10px;
+}
+
+.forgot-password-link a {
+  color: #8be9fd;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.forgot-password-link a:hover {
+  color: #ff79c6;
+  text-decoration: underline;
+}
+
 .auth-button {
   width: 100%;
   padding: 14px;
@@ -101,7 +119,7 @@
   margin-top: 10px;
 }
 
-.auth-button:hover {
+.auth-button:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(189, 147, 249, 0.4);
 }
@@ -111,6 +129,67 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+  opacity: 0.6;
+}
+
+/* Divider for OR separator */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 25px 0;
+  color: #6272a4;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #44475a;
+}
+
+.divider span {
+  padding: 0 15px;
+  color: #bd93f9;
+}
+
+/* Google Sign-In Button */
+.google-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #1e1e2e;
+  color: #f8f8f2;
+  border: 2px solid #44475a;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.google-button:hover:not(:disabled) {
+  background-color: #282a36;
+  border-color: #bd93f9;
+  box-shadow: 0 3px 10px rgba(189, 147, 249, 0.3);
+  transform: translateY(-2px);
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .error-message {
@@ -122,9 +201,28 @@
   border-radius: 5px;
   margin-bottom: 20px;
   font-size: 14px;
+  border: 1px solid rgba(255, 85, 85, 0.3);
 }
 
 .error-message svg {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+/* Success Message */
+.success-message {
+  display: flex;
+  align-items: center;
+  background-color: rgba(80, 250, 123, 0.2);
+  color: #50fa7b;
+  padding: 12px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border: 1px solid rgba(80, 250, 123, 0.3);
+}
+
+.success-message svg {
   margin-right: 10px;
   flex-shrink: 0;
 }
@@ -148,6 +246,21 @@
   text-decoration: underline;
 }
 
+/* Back Link for Forgot Password */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #8be9fd;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.back-link:hover {
+  color: #ff79c6;
+}
+
 /* Code snippets styling - matches the developer theme */
 .code-snippet {
   background-color: #44475a;
@@ -156,6 +269,92 @@
   font-family: monospace;
   color: #8be9fd;
 }
+
+/* Dropdown styles for program and year selection */
+.input-dropdown {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-dropdown select {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 5px;
+  border: 2px solid #44475a;
+  background-color: #1e1e2e;
+  color: #f8f8f2;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23bd93f9' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  padding-right: 40px;
+}
+
+.input-dropdown select:focus {
+  outline: none;
+  border-color: #bd93f9;
+  box-shadow: 0 0 0 3px rgba(189, 147, 249, 0.25);
+}
+
+.input-dropdown select option {
+  background-color: #282a36;
+  color: #f8f8f2;
+}
+
+/* Filter group styles */
+.filter-group {
+  margin-bottom: 20px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #bd93f9;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filter-group select {
+  width: 100%;
+  padding: 12px 15px;
+  border-radius: 5px;
+  border: 2px solid #44475a;
+  background-color: #1e1e2e;
+  color: #f8f8f2;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23bd93f9' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  padding-right: 40px;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: #bd93f9;
+  box-shadow: 0 0 0 3px rgba(189, 147, 249, 0.25);
+}
+
+.filter-group select option {
+  background-color: #282a36;
+  color: #f8f8f2;
+}
+
+/* Responsive adjustments for dropdowns */
+@media (max-width: 480px) {
+  .input-dropdown select,
+  .filter-group select {
+    font-size: 14px;
+    padding: 10px 12px;
+    padding-right: 35px;
+  }
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 480px) {
@@ -168,10 +367,16 @@
   }
   
   .input-group input {
-  width: 75%;
-  
-}
-  
-  
-  
+    width: 75%;
+  }
+
+  .auth-button,
+  .google-button {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .divider {
+    margin: 20px 0;
+  }
 }

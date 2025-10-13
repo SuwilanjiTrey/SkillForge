@@ -1,32 +1,137 @@
 // src/components/admin/CourseDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { db } from '../AnA/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import './styles/coursedashboard.css';
 
-// Sub-components for better separation of concernsCourseList component with improved filtering
-const CourseList = ({ courses, loading, error, onEdit, onDelete, onManageModules, currentPage, setCurrentPage, filters, setFilters }) => {
+
+
+// NEW: Program Manager Modal Component
+const ProgramManagerModal = ({ isOpen, onClose, programs, onAddProgram, onDeleteProgram }) => {
+  const [newProgram, setNewProgram] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  
+  
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newProgram.trim()) {
+      setError('Program name cannot be empty');
+      return;
+    }
+
+    // Check for duplicates (case insensitive)
+    if (programs.some(p => p.name.toLowerCase() === newProgram.trim().toLowerCase())) {
+      setError('This program already exists');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    
+    try {
+      await onAddProgram(newProgram.trim());
+      setNewProgram('');
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to add program');
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (programId, programName) => {
+    if (window.confirm(`Are you sure you want to delete "${programName}"? This action cannot be undone.`)) {
+      try {
+        await onDeleteProgram(programId);
+      } catch (err) {
+        setError('Failed to delete program');
+      }
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content program-manager-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Manage Programs</h3>
+          <button className="btn-close" onClick={onClose}>×</button>
+          
+        </div>
+        
+        <div className="modal-body">
+          <form onSubmit={handleSubmit} className="add-program-form">
+            <div className="form-group">
+              <label>Add New Program</label>
+              <div className="input-with-button">
+                <input
+                  type="text"
+                  value={newProgram}
+                  onChange={(e) => setNewProgram(e.target.value)}
+                  placeholder="e.g., Computer Science"
+                  disabled={loading}
+                />
+                <button type="submit" className="btn-primary" disabled={loading}>
+                  {loading ? 'Adding...' : 'Add'}
+                </button>
+              </div>
+              {error && <span className="error-text">{error}</span>}
+            </div>
+          </form>
+
+          <div className="programs-list">
+            <h4>Existing Programs ({programs.length})</h4>
+            {programs.length === 0 ? (
+              <p className="empty-message">No programs added yet</p>
+            ) : (
+              <ul className="program-items">
+                {programs.map((program) => (
+                  <li key={program.id} className="program-item">
+                    <span>{program.name}</span>
+                    <button
+                      className="btn-icon-remove"
+                      onClick={() => handleDelete(program.id, program.name)}
+                      title="Delete program"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <div className="modal-footer">
+          <button className="btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Updated CourseList component with dynamic programs
+const CourseList = ({ courses, loading, error, onEdit, onDelete, onManageModules, currentPage, setCurrentPage, filters, setFilters, programs, onManagePrograms }) => {
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1);
   };
 
-  // Handle all filtering on the frontend
   const filteredCourses = courses.filter(course => {
-    // Program filter - case insensitive
     const programMatch = filters.program === '' || 
       course.targetPrograms.some(program => 
         program.toLowerCase().includes(filters.program.toLowerCase())
       );
     
-    // Year filter - case insensitive
     const yearMatch = filters.year === '' || 
       course.targetYears.some(year => 
         year.toLowerCase().includes(filters.year.toLowerCase())
       );
     
-    // Search filter - case insensitive for title and description
     const searchMatch = filters.search === '' || 
       course.title.toLowerCase().includes(filters.search.toLowerCase()) || 
       course.description.toLowerCase().includes(filters.search.toLowerCase());
@@ -44,7 +149,16 @@ const CourseList = ({ courses, loading, error, onEdit, onDelete, onManageModules
     <div className="course-list-container">
       <div className="filters-container">
         <div className="filter-group">
-          <label htmlFor="program-filter">Filter by Program:</label>
+          <div className="filter-label-with-button">
+            <label htmlFor="program-filter">Filter by Program:</label>
+            <button 
+              className="btn-manage-programs"
+              onClick={onManagePrograms}
+              title="Manage Programs"
+            >
+              ⚙️
+            </button>
+          </div>
           <select
             id="program-filter"
             name="program"
@@ -52,11 +166,11 @@ const CourseList = ({ courses, loading, error, onEdit, onDelete, onManageModules
             onChange={handleFilterChange}
           >
             <option value="">All Programs</option>
-            <option value="Computer Science">Computer Science</option>
-            <option value="Natural Sciences">Natural Sciences</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Mathematics">Mathematics</option>
-            <option value="Medicine">Medicine</option>
+            {programs.map(program => (
+              <option key={program.id} value={program.name}>
+                {program.name}
+              </option>
+            ))}
           </select>
         </div>
         
@@ -194,8 +308,6 @@ const CourseList = ({ courses, loading, error, onEdit, onDelete, onManageModules
   );
 };
 
-
-// Add this new ContentPreview component
 const ContentPreview = ({ content }) => {
   const [previewError, setPreviewError] = useState(false);
 
@@ -213,7 +325,6 @@ const ContentPreview = ({ content }) => {
 
     switch (content.type) {
       case 'document':
-        // For PDFs, try to embed; for other documents, provide a link
         if (content.url.toLowerCase().includes('.pdf')) {
           return (
             <div className="document-preview">
@@ -239,7 +350,6 @@ const ContentPreview = ({ content }) => {
         }
         
       case 'video':
-        // Check if it's a YouTube URL
         if (content.url.includes('youtube.com') || content.url.includes('youtu.be')) {
           const videoId = content.url.includes('youtube.com') 
             ? content.url.split('v=')[1]?.split('&')[0]
@@ -261,7 +371,6 @@ const ContentPreview = ({ content }) => {
           }
         }
         
-        // For other videos, try HTML5 video
         return (
           <div className="video-preview">
             <video 
@@ -307,9 +416,8 @@ const ContentPreview = ({ content }) => {
   );
 };
 
-
-
-const CourseForm = ({ course, onSubmit, onCancel }) => {
+// Updated CourseForm component with dynamic programs
+const CourseForm = ({ course, onSubmit, onCancel, programs, onManagePrograms }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -317,8 +425,7 @@ const CourseForm = ({ course, onSubmit, onCancel }) => {
     targetYears: []
   });
 
-  const yearOptions = ["1st year", "2nd year", "3rd year", "4th year", "5th year", "6th year"];
-  const programOptions = ["Computer Science", "Natural Sciences", "Engineering", "Mathematics", "Medicine"];
+  const yearOptions = ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "6th Year"];
 
   useEffect(() => {
     if (course) {
@@ -401,19 +508,33 @@ const CourseForm = ({ course, onSubmit, onCancel }) => {
         </div>
         
         <div className="form-group">
-          <label>Target Programs</label>
+          <div className="label-with-button">
+            <label>Target Programs</label>
+            <button 
+              type="button"
+              className="btn-add-small"
+              onClick={onManagePrograms}
+              title="Manage Programs"
+            >
+              + Add Program
+            </button>
+          </div>
           <div className="checkbox-container">
-            {programOptions.map(program => (
-              <div key={program} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`program-${program}`}
-                  checked={formData.targetPrograms.includes(program)}
-                  onChange={() => handleProgramChange(program)}
-                />
-                <label htmlFor={`program-${program}`}>{program}</label>
-              </div>
-            ))}
+            {programs.length === 0 ? (
+              <p className="empty-message">No programs available. Click "+ Add Program" to add one.</p>
+            ) : (
+              programs.map(program => (
+                <div key={program.id} className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`program-${program.id}`}
+                    checked={formData.targetPrograms.includes(program.name)}
+                    onChange={() => handleProgramChange(program.name)}
+                  />
+                  <label htmlFor={`program-${program.id}`}>{program.name}</label>
+                </div>
+              ))
+            )}
           </div>
         </div>
         
@@ -472,14 +593,12 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
     if (window.confirm('Are you sure you want to remove this module?')) {
       const newModules = [...modules];
       newModules.splice(index, 1);
-      // Update order for remaining modules
       const updatedModules = newModules.map((module, i) => ({
         ...module,
         order: i + 1
       }));
       setModules(updatedModules);
       
-      // If we're removing the currently selected module, deselect it
       if (selectedModule && selectedModule.id === modules[index].id) {
         setSelectedModule(null);
       }
@@ -494,7 +613,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
     };
     setModules(newModules);
     
-    // If we're editing the currently selected module, update it
     if (selectedModule && selectedModule.id === newModules[index].id) {
       setSelectedModule(newModules[index]);
     }
@@ -512,7 +630,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
     newModules[moduleIndex].content = [...newModules[moduleIndex].content, newContent];
     setModules(newModules);
     
-    // If we're editing the currently selected module, update it
     if (selectedModule && selectedModule.id === newModules[moduleIndex].id) {
       setSelectedModule(newModules[moduleIndex]);
     }
@@ -524,7 +641,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
       newModules[moduleIndex].content.splice(contentIndex, 1);
       setModules(newModules);
       
-      // If we're editing the currently selected module, update it
       if (selectedModule && selectedModule.id === newModules[moduleIndex].id) {
         setSelectedModule(newModules[moduleIndex]);
       }
@@ -539,7 +655,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
     };
     setModules(newModules);
     
-    // If we're editing the currently selected module, update it
     if (selectedModule && selectedModule.id === newModules[moduleIndex].id) {
       setSelectedModule(newModules[moduleIndex]);
     }
@@ -568,7 +683,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
       </div>
       
       <div className="modules-layout">
-        {/* Module List Section */}
         <div className="modules-list-section">
           <div className="section-header">
             <h3>Course Modules</h3>
@@ -610,7 +724,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
           )}
         </div>
 
-        {/* Module Content Section */}
         <div className="module-content-section">
           {selectedModule ? (
             <>
@@ -754,7 +867,6 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
         </div>
       </div>
 
-      {/* Preview Modal */}
       {previewContent && (
         <div className="preview-modal">
           <div className="preview-modal-content">
@@ -772,9 +884,10 @@ const ModuleManager = ({ course, onSave, onCancel }) => {
   );
 };
 
-// Main component
+// Main component with programs management
 const CourseDashboard = () => {
   const [courses, setCourses] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -783,14 +896,30 @@ const CourseDashboard = () => {
     year: '',
     search: ''
   });
+  const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
   
-  // View states: 'list', 'edit-course', 'add-course', 'manage-modules'
   const [currentView, setCurrentView] = useState('list');
   const [selectedCourse, setSelectedCourse] = useState(null);
 
   useEffect(() => {
     fetchCourses();
+    fetchPrograms();
   }, []);
+
+  const fetchPrograms = async () => {
+    try {
+      const programsCollection = collection(db, 'programs');
+      const programsQuery = query(programsCollection, orderBy('name'));
+      const programSnapshot = await getDocs(programsQuery);
+      const programList = programSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setPrograms(programList);
+    } catch (err) {
+      console.error('Failed to fetch programs:', err);
+    }
+  };
 
   const fetchCourses = async () => {
     try {
@@ -806,6 +935,27 @@ const CourseDashboard = () => {
     } catch (err) {
       setError('Failed to fetch courses');
       setLoading(false);
+    }
+  };
+
+  const handleAddProgram = async (programName) => {
+    try {
+      await addDoc(collection(db, 'programs'), {
+        name: programName,
+        createdAt: new Date()
+      });
+      await fetchPrograms();
+    } catch (err) {
+      throw new Error('Failed to add program');
+    }
+  };
+
+  const handleDeleteProgram = async (programId) => {
+    try {
+      await deleteDoc(doc(db, 'programs', programId));
+      await fetchPrograms();
+    } catch (err) {
+      throw new Error('Failed to delete program');
     }
   };
 
@@ -843,12 +993,11 @@ const CourseDashboard = () => {
       };
 
       if (selectedCourse) {
-        // Update existing course
         const courseRef = doc(db, 'courses', selectedCourse.id);
         await updateDoc(courseRef, data);
       } else {
-        // Add new course
         data.createdAt = new Date();
+        data.modules = [];
         await addDoc(collection(db, 'courses'), data);
       }
       
@@ -877,6 +1026,14 @@ const CourseDashboard = () => {
   const handleCancel = () => {
     setCurrentView('list');
     setSelectedCourse(null);
+  };
+
+  const openProgramModal = () => {
+    setIsProgramModalOpen(true);
+  };
+
+  const closeProgramModal = () => {
+    setIsProgramModalOpen(false);
   };
 
   return (
@@ -935,6 +1092,8 @@ const CourseDashboard = () => {
             setCurrentPage={setCurrentPage}
             filters={filters}
             setFilters={setFilters}
+            programs={programs}
+            onManagePrograms={openProgramModal}
           />
         )}
 
@@ -943,6 +1102,8 @@ const CourseDashboard = () => {
             course={selectedCourse}
             onSubmit={handleSaveCourse}
             onCancel={handleCancel}
+            programs={programs}
+            onManagePrograms={openProgramModal}
           />
         )}
 
@@ -954,6 +1115,14 @@ const CourseDashboard = () => {
           />
         )}
       </div>
+
+      <ProgramManagerModal
+        isOpen={isProgramModalOpen}
+        onClose={closeProgramModal}
+        programs={programs}
+        onAddProgram={handleAddProgram}
+        onDeleteProgram={handleDeleteProgram}
+      />
     </div>
   );
 };

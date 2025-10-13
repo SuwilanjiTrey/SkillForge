@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from "./AnA/Login";
 import Register from "./AnA/Register";
 import AuthRoute from "./AnA/AuthRoute";
+import ForgotPassword from "./AnA/forgotPassword.jsx";
 //==============// Admin imports //==============//
 import AdminDashboard from "./Admin/Admin";
 import AdminRoute from "./Admin/AdminRoute";
@@ -91,6 +92,7 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/viewer" element={<ViewerDashboard />} />
         <Route path="/loading" element={<Loading />} />
         <Route path="/test" element={<FirebaseRulesTester />}/>

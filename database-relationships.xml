@@ -1,0 +1,186 @@
+<mxfile host="app.diagrams.net" modified="2024-01-01T00:00:00.000Z" agent="Claude" version="22.0.0">
+  <diagram name="Educational Platform ERD" id="educational-platform-erd">
+    <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <!-- Users Entity -->
+        <mxCell id="users-entity" value="USERS&#xa;───────────────────&#xa;🔑 uid: string (PK)&#xa;displayName: string&#xa;email: string&#xa;role: string&#xa;subscriptionStatus: string&#xa;subscriptionEnd: timestamp&#xa;createdAt: timestamp&#xa;updatedAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1976D2;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="700" y="200" width="220" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- Admins Entity -->
+        <mxCell id="admins-entity" value="ADMINS&#xa;───────────────────&#xa;🔑 uid: string (PK, FK)&#xa;role: string&#xa;createdAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="200" width="220" height="100" as="geometry"/>
+        </mxCell>
+        
+        <!-- Tutors Entity -->
+        <mxCell id="tutors-entity" value="TUTORS&#xa;───────────────────&#xa;🔑 uid: string (PK, FK)&#xa;email: string&#xa;displayName: string&#xa;role: string&#xa;assignedCourses: array&#xa;createdAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="200" width="220" height="140" as="geometry"/>
+        </mxCell>
+        
+        <!-- Courses Entity -->
+        <mxCell id="courses-entity" value="COURSES&#xa;───────────────────&#xa;🔑 courseId: string (PK)&#xa;title: string&#xa;description: string&#xa;targetPrograms: array&#xa;targetYears: array&#xa;modules: array&#xa;createdAt: timestamp&#xa;updatedAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="420" width="220" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- Modules Entity (Subcollection) -->
+        <mxCell id="modules-entity" value="MODULES (Subcollection)&#xa;───────────────────&#xa;🔑 moduleId: string (PK)&#xa;🔗 courseId: string (FK)&#xa;title: string&#xa;order: number&#xa;content: array&#xa;createdAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;dashed=1;dashPattern=5 5;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="420" width="220" height="140" as="geometry"/>
+        </mxCell>
+        
+        <!-- Content Entity (Subcollection) -->
+        <mxCell id="content-entity" value="CONTENT (Subcollection)&#xa;───────────────────&#xa;🔑 contentId: string (PK)&#xa;🔗 moduleId: string (FK)&#xa;title: string&#xa;description: string&#xa;type: string&#xa;url: string&#xa;createdAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;strokeWidth=2;dashed=1;dashPattern=5 5;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="1320" y="600" width="220" height="150" as="geometry"/>
+        </mxCell>
+        
+        <!-- Assessments Entity -->
+        <mxCell id="assessments-entity" value="ASSESSMENTS&#xa;───────────────────&#xa;🔑 assessmentId: string (PK)&#xa;🔗 courseId: string (FK)&#xa;title: string&#xa;courseName: string&#xa;program: string&#xa;targetAudience: string&#xa;url: string&#xa;createdBy: string&#xa;createdAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#E65100;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="660" width="220" height="180" as="geometry"/>
+        </mxCell>
+        
+        <!-- Treasury Entity -->
+        <mxCell id="treasury-entity" value="TREASURY (Singleton)&#xa;───────────────────&#xa;🔑 id: &quot;main&quot; (PK)&#xa;balance: number&#xa;currency: string&#xa;roleAmounts: object&#xa;totalTransactions: number&#xa;totalIncome: number&#xa;totalExpenses: number&#xa;createdAt: timestamp&#xa;updatedAt: timestamp&#xa;status: string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F57F17;strokeWidth=3;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="500" width="220" height="220" as="geometry"/>
+        </mxCell>
+        
+        <!-- Transactions Entity -->
+        <mxCell id="transactions-entity" value="TRANSACTIONS&#xa;───────────────────&#xa;🔑 transactionId: string (PK)&#xa;🔗 userId: string (FK)&#xa;userEmail: string&#xa;type: string&#xa;role: string&#xa;amount: number&#xa;currency: string&#xa;date: timestamp&#xa;month: number&#xa;year: number&#xa;category: string&#xa;status: string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFDE7;strokeColor=#F57F17;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="500" width="220" height="240" as="geometry"/>
+        </mxCell>
+        
+        <!-- Settings Entity -->
+        <mxCell id="settings-entity" value="SETTINGS (Singleton)&#xa;───────────────────&#xa;🔑 id: &quot;courseOptions&quot; (PK)&#xa;programs: array&#xa;years: array&#xa;createdAt: timestamp&#xa;updatedAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F7FA;strokeColor=#00838F;strokeWidth=3;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="780" width="220" height="120" as="geometry"/>
+        </mxCell>
+        
+        <!-- Notifications Entity -->
+        <mxCell id="notifications-entity" value="NOTIFICATIONS&#xa;───────────────────&#xa;🔑 notificationId: string (PK)&#xa;🔗 userId: string (FK)&#xa;title: string&#xa;message: string&#xa;type: string&#xa;read: boolean&#xa;createdAt: timestamp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#F57C00;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="700" y="60" width="220" height="140" as="geometry"/>
+        </mxCell>
+        
+        <!-- Queries Entity -->
+        <mxCell id="queries-entity" value="QUERIES&#xa;───────────────────&#xa;🔑 queryId: string (PK)&#xa;🔗 userId: string (FK)&#xa;title: string&#xa;description: string&#xa;userEmail: string&#xa;createdAt: timestamp&#xa;status: string" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2F1;strokeColor=#00695C;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="700" y="420" width="220" height="140" as="geometry"/>
+        </mxCell>
+        
+        <!-- LiveSessions Entity -->
+        <mxCell id="livesessions-entity" value="LIVESESSIONS&#xa;───────────────────&#xa;🔑 sessionId: string (PK)&#xa;🔗 createdBy: string (FK)&#xa;title: string&#xa;description: string&#xa;link: string&#xa;timestamp: number&#xa;status: string&#xa;active: boolean" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCE4EC;strokeColor=#AD1457;strokeWidth=2;fontSize=11;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="780" width="220" height="160" as="geometry"/>
+        </mxCell>
+        
+        <!-- Relationships -->
+        
+        <!-- Users to Admins (1:1) -->
+        <mxCell id="rel-users-admins" value="1:1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#1976D2;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="users-entity" target="admins-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="700" y="250" as="sourcePoint"/>
+            <mxPoint x="600" y="250" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Users to Tutors (1:1) -->
+        <mxCell id="rel-users-tutors" value="1:1" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#2E7D32;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="users-entity" target="tutors-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="920" y="250" as="sourcePoint"/>
+            <mxPoint x="1040" y="270" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Users to Notifications (1:M) -->
+        <mxCell id="rel-users-notifications" value="1:M" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#F57C00;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="users-entity" target="notifications-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="810" y="200" as="sourcePoint"/>
+            <mxPoint x="810" y="200" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Users to Queries (1:M) -->
+        <mxCell id="rel-users-queries" value="1:M" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#00695C;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="users-entity" target="queries-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="810" y="380" as="sourcePoint"/>
+            <mxPoint x="810" y="420" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Users to Transactions (1:M) -->
+        <mxCell id="rel-users-transactions" value="1:M" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#F57F17;exitX=0;exitY=0.75;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="users-entity" target="transactions-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="700" y="335" as="sourcePoint"/>
+            <mxPoint x="600" y="560" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Users to LiveSessions (1:M) -->
+        <mxCell id="rel-users-livesessions" value="1:M" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#AD1457;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="users-entity" target="livesessions-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="700" y="380" as="sourcePoint"/>
+            <mxPoint x="545" y="780" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Tutors to Courses (M:M) -->
+        <mxCell id="rel-tutors-courses" value="M:M&#xa;(assignedCourses)" style="endArrow=classic;startArrow=classic;html=1;strokeWidth=2;strokeColor=#7B1FA2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="tutors-entity" target="courses-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1150" y="340" as="sourcePoint"/>
+            <mxPoint x="1150" y="420" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Courses to Modules (1:M - Subcollection) -->
+        <mxCell id="rel-courses-modules" value="1:M&#xa;(contains)" style="endArrow=diamondThin;html=1;strokeWidth=2;strokeColor=#7B1FA2;dashed=1;dashPattern=5 5;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="courses-entity" target="modules-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1260" y="465" as="sourcePoint"/>
+            <mxPoint x="1320" y="465" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Modules to Content (1:M - Subcollection) -->
+        <mxCell id="rel-modules-content" value="1:M&#xa;(contains)" style="endArrow=diamondThin;html=1;strokeWidth=2;strokeColor=#7B1FA2;dashed=1;dashPattern=5 5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="modules-entity" target="content-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1430" y="560" as="sourcePoint"/>
+            <mxPoint x="1430" y="600" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Courses to Assessments (1:M) -->
+        <mxCell id="rel-courses-assessments" value="1:M" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#E65100;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="courses-entity" target="assessments-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1150" y="600" as="sourcePoint"/>
+            <mxPoint x="1150" y="660" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Treasury to Transactions (1:M) -->
+        <mxCell id="rel-treasury-transactions" value="1:M" style="endArrow=classic;html=1;strokeWidth=2;strokeColor=#F57F17;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endFill=1;" edge="1" parent="1" source="treasury-entity" target="transactions-entity">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="320" y="610" as="sourcePoint"/>
+            <mxPoint x="380" y="620" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- Legend -->
+        <mxCell id="legend-box" value="LEGEND&#xa;─────────────────&#xa;🔑 Primary Key (PK)&#xa;🔗 Foreign Key (FK)&#xa;&#xa;Relationships:&#xa;1:1 = One-to-One&#xa;1:M = One-to-Many&#xa;M:M = Many-to-Many&#xa;&#xa;Line Styles:&#xa;Solid = Direct relation&#xa;Dashed = Subcollection&#xa;◆ = Contains/Owns&#xa;&#xa;Singleton = Single doc&#xa;in collection" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#616161;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="60" width="200" height="280" as="geometry"/>
+        </mxCell>
+        
+        <!-- Color Legend -->
+        <mxCell id="color-legend" value="COLOR CODING&#xa;─────────────────&#xa;🔵 Users/Auth&#xa;🔴 Admins&#xa;🟢 Tutors&#xa;🟣 Courses/Content&#xa;🟠 Assessments&#xa;🟡 Financial&#xa;🔷 System/Settings&#xa;🌸 Sessions&#xa;🐚 Queries&#xa;🟨 Notifications" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#616161;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="100" y="360" width="200" height="220" as="geometry"/>
+        </mxCell>
+        
+        <!-- Title -->
+        <mxCell id="title" value="Educational Platform - Database Schema (Firestore)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="650" y="10" width="500" height="30" as="geometry"/>
+        </mxCell>
+        
+        <!-- Notes Box -->
+        <mxCell id="notes-box" value="IMPORTANT NOTES&#xa;────────────────────────────────&#xa;• Users collection is central hub&#xa;• Admins &amp; Tutors extend Users&#xa;• Modules &amp; Content are subcollections&#xa;• Treasury &amp; Settings are singletons&#xa;• assignedCourses creates M:M relation&#xa;• All timestamps use Firestore timestamp&#xa;• Security rules control access by role" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F57F17;strokeWidth=2;fontSize=10;align=left;verticalAlign=top;spacingLeft=10;spacingTop=5;" vertex="1" parent="1">
+          <mxGeometry x="700" y="900" width="560" height="160" as="geometry"/>
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

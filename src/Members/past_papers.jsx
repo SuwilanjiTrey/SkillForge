@@ -14,6 +14,7 @@ const AssessmentDisplay = () => {
   const [error, setError] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
   const [courses, setCourses] = useState([]);
+  const [userProgram, setUserProgram] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,85 +27,90 @@ const AssessmentDisplay = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentAssessments = filteredAssessments.slice(startIndex, endIndex);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        
-        if (!user) {
-          setError("User not authenticated");
-          setLoading(false);
-          return;
-        }
-        
-        const userId = user.uid;
-        const userEmail = user.email;
-        
-        console.log("User data:", userId, userEmail);
-        
-        // First check if user is premium
-        const userDataService = new PremiumUserData(userId, userEmail);
-        
-        if (userDataService.getError()) {
-          setError(userDataService.getError());
-          setLoading(false);
-          return;
-        }
-        
-        await userDataService.fetchUserData();
-
-        setIsPremium(userDataService.isPremiumMember());
-        
-        // Only fetch assessments if user is premium
-        if (userDataService.isPremiumMember()) {
-          // Fetch ALL assessments directly without filtering by program/year
-          // Let the UI do the filtering
-          const db = getFirestore();
-          const assessmentsRef = collection(db, 'Assessments');
-          const assessmentsSnapshot = await getDocs(assessmentsRef);
-          
-          const assessmentsList = assessmentsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          
-          console.log("Total assessments fetched:", assessmentsList.length);
-          console.log("Fetched assessments:", assessmentsList);
-          
-          setAssessments(assessmentsList);
-          setFilteredAssessments(assessmentsList);
-          
-          // Extract unique course IDs (course codes) for filter dropdown
-          // Group by courseId and show courseId - courseName format
-          const uniqueCourseMap = new Map();
-          assessmentsList.forEach(item => {
-            if (item.courseId && !uniqueCourseMap.has(item.courseId)) {
-              uniqueCourseMap.set(item.courseId, item.courseName || item.courseId);
-            }
-          });
-          
-          // Convert to array of objects for easier display
-          const coursesArray = Array.from(uniqueCourseMap).map(([id, name]) => ({
-            id,
-            name
-          }));
-          
-          setCourses(coursesArray);
-          console.log("Unique courses:", coursesArray);
-        } else {
-          setError("Premium membership required to access assessments");
-        }
-      } catch (err) {
-        console.error("Error:", err);
-        setError("Failed to load assessments. Please try again.");
-      } finally {
+//update the fetchData useEffect to get the user's program
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      
+      if (!user) {
+        setError("User not authenticated");
         setLoading(false);
+        return;
       }
-    };
-    
-    fetchData();
-  }, []);
+      
+      const userId = user.uid;
+      const userEmail = user.email;
+      
+      console.log("User data:", userId, userEmail);
+      
+      // First check if user is premium
+      const userDataService = new PremiumUserData(userId, userEmail);
+      
+      if (userDataService.getError()) {
+        setError(userDataService.getError());
+        setLoading(false);
+        return;
+      }
+      
+      await userDataService.fetchUserData();
+
+      setIsPremium(userDataService.isPremiumMember());
+      
+      // Get the user's program
+      const userData = userDataService.userData;
+      setUserProgram(userData.program || null);
+      
+      // Only fetch assessments if user is premium
+      if (userDataService.isPremiumMember()) {
+        // Fetch ALL assessments directly without filtering by program/year
+        // Let the UI do the filtering
+        const db = getFirestore();
+        const assessmentsRef = collection(db, 'Assessments');
+        const assessmentsSnapshot = await getDocs(assessmentsRef);
+        
+        const assessmentsList = assessmentsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        console.log("Total assessments fetched:", assessmentsList.length);
+        console.log("Fetched assessments:", assessmentsList);
+        
+        setAssessments(assessmentsList);
+        setFilteredAssessments(assessmentsList);
+        
+        // Extract unique course IDs (course codes) for filter dropdown
+        // Group by courseId and show courseId - courseName format
+        const uniqueCourseMap = new Map();
+        assessmentsList.forEach(item => {
+          if (item.courseId && !uniqueCourseMap.has(item.courseId)) {
+            uniqueCourseMap.set(item.courseId, item.courseName || item.courseId);
+          }
+        });
+        
+        // Convert to array of objects for easier display
+        const coursesArray = Array.from(uniqueCourseMap).map(([id, name]) => ({
+          id,
+          name
+        }));
+        
+        setCourses(coursesArray);
+        console.log("Unique courses:", coursesArray);
+      } else {
+        setError("Premium membership required to access assessments");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Failed to load assessments. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchData();
+}, []);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -122,58 +128,71 @@ const AssessmentDisplay = () => {
    * 2. Course code (courseId) - case-insensitive - PRIMARY FILTER
    * 3. Search term (assessmentTitle, courseName, or courseId) - case-insensitive
    */
-  useEffect(() => {
-    let filtered = [...assessments];
+// useEffect to include program filter
+useEffect(() => {
+  let filtered = [...assessments];
 
-    console.log("Starting filter with:", {
-      totalAssessments: assessments.length,
-      selectedYear,
-      selectedCourse,
-      searchTerm
-    });
+  console.log("Starting filter with:", {
+    totalAssessments: assessments.length,
+    selectedYear,
+    selectedCourse,
+    searchTerm,
+    userProgram
+  });
 
-    // Filter by year (case-insensitive)
-    if (selectedYear !== "all") {
-      filtered = filtered.filter(
-        (assessment) => 
-          assessment.targetAudience && 
-          assessment.targetAudience.toLowerCase() === selectedYear.toLowerCase()
-      );
-      console.log(`After year filter (${selectedYear}):`, filtered.length);
-    }
+  // Filter by user's program (case-insensitive) - NEW FILTER
+  if (userProgram) {
+    filtered = filtered.filter(
+      (assessment) => 
+        assessment.program && 
+        assessment.program.toLowerCase() === userProgram.toLowerCase()
+    );
+    console.log(`After program filter (${userProgram}):`, filtered.length);
+  }
 
-    // Filter by course code (courseId) ONLY - case-insensitive
-    if (selectedCourse !== "all") {
-      filtered = filtered.filter(
-        (assessment) => {
-          const match = assessment.courseId && 
-            assessment.courseId.toLowerCase() === selectedCourse.toLowerCase();
-          
-          if (match) {
-            console.log(`Matched assessment: ${assessment.assessmentTitle} with courseId: ${assessment.courseId}`);
-          }
-          
-          return match;
+  // Filter by year (case-insensitive)
+  if (selectedYear !== "all") {
+    filtered = filtered.filter(
+      (assessment) => 
+        assessment.targetAudience && 
+        assessment.targetAudience.toLowerCase() === selectedYear.toLowerCase()
+    );
+    console.log(`After year filter (${selectedYear}):`, filtered.length);
+  }
+
+  // Filter by course code (courseId) ONLY - case-insensitive
+  if (selectedCourse !== "all") {
+    filtered = filtered.filter(
+      (assessment) => {
+        const match = assessment.courseId && 
+          assessment.courseId.toLowerCase() === selectedCourse.toLowerCase();
+        
+        if (match) {
+          console.log(`Matched assessment: ${assessment.assessmentTitle} with courseId: ${assessment.courseId}`);
         }
-      );
-      console.log(`After course filter (${selectedCourse}):`, filtered.length);
-    }
+        
+        return match;
+      }
+    );
+    console.log(`After course filter (${selectedCourse}):`, filtered.length);
+  }
 
-    // Filter by search term (case-insensitive)
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (assessment) =>
-          (assessment.assessmentTitle && assessment.assessmentTitle.toLowerCase().includes(term)) ||
-          (assessment.courseName && assessment.courseName.toLowerCase().includes(term)) ||
-          (assessment.courseId && assessment.courseId.toLowerCase().includes(term))
-      );
-      console.log(`After search filter ("${searchTerm}"):`, filtered.length);
-    }
+  // Filter by search term (case-insensitive)
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    filtered = filtered.filter(
+      (assessment) =>
+        (assessment.assessmentTitle && assessment.assessmentTitle.toLowerCase().includes(term)) ||
+        (assessment.courseName && assessment.courseName.toLowerCase().includes(term)) ||
+        (assessment.courseId && assessment.courseId.toLowerCase().includes(term))
+    );
+    console.log(`After search filter ("${searchTerm}"):`, filtered.length);
+  }
 
-    console.log("Final filtered assessments:", filtered);
-    setFilteredAssessments(filtered);
-  }, [selectedYear, selectedCourse, searchTerm, assessments]);
+  console.log("Final filtered assessments:", filtered);
+  setFilteredAssessments(filtered);
+}, [selectedYear, selectedCourse, searchTerm, assessments, userProgram]); // Add userProgram to dependencies
+
 
   // Handle year filter change
   const handleYearFilter = (year) => {
@@ -258,10 +277,10 @@ const AssessmentDisplay = () => {
   return (
     <div className="assessment-page-container">
       <div className="assessment-header">
-        <h1>Computer Science Assessments</h1>
-        <p>Browse through past papers and assessments</p>
-      </div>
-
+  <h1>{userProgram || "Computer Science"} Assessments</h1>
+  <p>Browse through past papers and assessments</p>
+  {userProgram && <span className="program-badge">{userProgram}</span>}
+</div>
       {/* Mobile Filter Toggle */}
       <div className="mobile-filter-toggle">
         <button 
